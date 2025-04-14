@@ -1,0 +1,224 @@
+-- Script لواجهة الأدمن
+local Player = game:GetService("Players").LocalPlayer
+local UIS = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+-- إنشاء الواجهة الرئيسية
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+
+ScreenGui.Name = "AdminGUI"
+ScreenGui.Parent = CoreGui
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "أدمن الجيم (Admin GUI)"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = Title
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 18
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+ScrollingFrame.Parent = MainFrame
+ScrollingFrame.Position = UDim2.new(0, 0, 0, 30)
+ScrollingFrame.Size = UDim2.new(1, 0, 1, -30)
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
+ScrollingFrame.ScrollBarThickness = 5
+
+-- وظيفة إنشاء أزرار الأوامر
+local function CreateButton(Name, Position)
+    local Button = Instance.new("TextButton")
+    
+    Button.Name = Name
+    Button.Parent = ScrollingFrame
+    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Button.Position = Position
+    Button.Size = UDim2.new(0.9, 0, 0, 40)
+    Button.Font = Enum.Font.SourceSansBold
+    Button.Text = Name
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 16
+    
+    return Button
+end
+
+-- إنشاء أزرار الأوامر
+local BanButton = CreateButton("Ban", UDim2.new(0.05, 0, 0, 10))
+local KickButton = CreateButton("Kick", UDim2.new(0.05, 0, 0, 60))
+local F3XButton = CreateButton("F3X", UDim2.new(0.05, 0, 0, 110))
+local BtoolsButton = CreateButton("Btools", UDim2.new(0.05, 0, 0, 160))
+local FlyButton = CreateButton("Fly", UDim2.new(0.05, 0, 0, 210))
+local NoclipButton = CreateButton("Noclip", UDim2.new(0.05, 0, 0, 260))
+local KillAllButton = CreateButton("Kill All", UDim2.new(0.05, 0, 0, 310))
+
+-- وظيفة لفتح قائمة اللاعبين
+local function OpenPlayerList()
+    local PlayerListFrame = Instance.new("Frame")
+    local PlayerListTitle = Instance.new("TextLabel")
+    local PlayerListClose = Instance.new("TextButton")
+    local PlayerListScrolling = Instance.new("ScrollingFrame")
+    
+    PlayerListFrame.Name = "PlayerListFrame"
+    PlayerListFrame.Parent = ScreenGui
+    PlayerListFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    PlayerListFrame.BorderSizePixel = 0
+    PlayerListFrame.Position = UDim2.new(0.4, 0, 0.4, 0)
+    PlayerListFrame.Size = UDim2.new(0, 200, 0, 300)
+    PlayerListFrame.Active = true
+    PlayerListFrame.Draggable = true
+    
+    PlayerListTitle.Name = "PlayerListTitle"
+    PlayerListTitle.Parent = PlayerListFrame
+    PlayerListTitle.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    PlayerListTitle.Size = UDim2.new(1, 0, 0, 30)
+    PlayerListTitle.Font = Enum.Font.SourceSansBold
+    PlayerListTitle.Text = "اختر لاعب"
+    PlayerListTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PlayerListTitle.TextSize = 18
+    
+    PlayerListClose.Name = "PlayerListClose"
+    PlayerListClose.Parent = PlayerListTitle
+    PlayerListClose.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    PlayerListClose.Position = UDim2.new(0.9, 0, 0, 0)
+    PlayerListClose.Size = UDim2.new(0, 30, 0, 30)
+    PlayerListClose.Font = Enum.Font.SourceSansBold
+    PlayerListClose.Text = "X"
+    PlayerListClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PlayerListClose.TextSize = 18
+    PlayerListClose.MouseButton1Click:Connect(function()
+        PlayerListFrame:Destroy()
+    end)
+    
+    PlayerListScrolling.Parent = PlayerListFrame
+    PlayerListScrolling.Position = UDim2.new(0, 0, 0, 30)
+    PlayerListScrolling.Size = UDim2.new(1, 0, 1, -30)
+    PlayerListScrolling.CanvasSize = UDim2.new(0, 0, 0, 0)
+    
+    -- إضافة اللاعبين إلى القائمة
+    local players = game:GetService("Players"):GetPlayers()
+    for i, player in ipairs(players) do
+        if player ~= Player then
+            local PlayerButton = Instance.new("TextButton")
+            PlayerButton.Name = player.Name
+            PlayerButton.Parent = PlayerListScrolling
+            PlayerButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            PlayerButton.Position = UDim2.new(0.05, 0, 0, (i-1)*40)
+            PlayerButton.Size = UDim2.new(0.9, 0, 0, 35)
+            PlayerButton.Font = Enum.Font.SourceSans
+            PlayerButton.Text = player.Name
+            PlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            PlayerButton.TextSize = 14
+            
+            PlayerListScrolling.CanvasSize = UDim2.new(0, 0, 0, i*40)
+            
+            return player
+        end
+    end
+    
+    return nil
+end
+
+-- وظائف الأوامر
+local function BanPlayer(player)
+    -- كود البان هنا
+    print("تم بان اللاعب: "..player.Name)
+end
+
+local function KickPlayer(player)
+    -- كود الكيك هنا
+    print("تم كيك اللاعب: "..player.Name)
+end
+
+local function GiveF3X(player)
+    -- كود إعطاء F3X هنا
+    print("تم إعطاء F3X للاعب: "..player.Name)
+end
+
+local function GiveBtools(player)
+    -- كود إعطاء Btools هنا
+    print("تم إعطاء Btools للاعب: "..player.Name)
+end
+
+local function ToggleFly()
+    -- كود الطيران هنا
+    print("تم تفعيل/إيقاف الطيران")
+end
+
+local function ToggleNoclip()
+    -- كود النوكلب هنا
+    print("تم تفعيل/إيقاف النوكلب")
+end
+
+local function KillAllPlayers()
+    -- كود قتل جميع اللاعبين هنا
+    print("تم قتل جميع اللاعبين")
+end
+
+-- ربط الأزرار بالوظائف
+BanButton.MouseButton1Click:Connect(function()
+    local player = OpenPlayerList()
+    if player then
+        BanPlayer(player)
+    end
+end)
+
+KickButton.MouseButton1Click:Connect(function()
+    local player = OpenPlayerList()
+    if player then
+        KickPlayer(player)
+    end
+end)
+
+F3XButton.MouseButton1Click:Connect(function()
+    local player = OpenPlayerList()
+    if player then
+        GiveF3X(player)
+    end
+end)
+
+BtoolsButton.MouseButton1Click:Connect(function()
+    local player = OpenPlayerList()
+    if player then
+        GiveBtools(player)
+    end
+end)
+
+FlyButton.MouseButton1Click:Connect(ToggleFly)
+NoclipButton.MouseButton1Click:Connect(ToggleNoclip)
+KillAllButton.MouseButton1Click:Connect(KillAllPlayers)
+
+-- اختصار لوحة المفاتيح لفتح/إغلاق الواجهة (F4)
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.F4 and not gameProcessed then
+        if ScreenGui.Enabled then
+            ScreenGui.Enabled = false
+        else
+            ScreenGui.Enabled = true
+        end
+    end
+end)
