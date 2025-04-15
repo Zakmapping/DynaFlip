@@ -1,370 +1,933 @@
-local Player = game:GetService("Players").LocalPlayer
-local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
-local RunService = game:GetService("RunService")
+--[[
+    ____
+    /\  _`\                    __
+    \ \ \L\ \     __      ____/\_\    ___
+     \ \  _ <'  /'__`\   /',__\/\ \  /'___\
+      \ \ \L\ \/\ \L\.\_/\__, `\ \ \/\ \__/
+       \ \____/\ \__/.\_\/\____/\ \_\ \____\
+        \/___/  \/__/\/_/\/___/  \/_/\/____/
 
--- إعدادات التصميم المخصصة لـ DynaFlip
-local GUI_SETTINGS = {
-    MainColor = Color3.fromRGB(28, 28, 28),
-    HeaderColor = Color3.fromRGB(22, 22, 22),
-    AccentColor = Color3.fromRGB(0, 180, 255),
-    TextColor = Color3.fromRGB(255, 255, 255),
-    ButtonColor = Color3.fromRGB(40, 40, 40),
-    CornerRadius = UDim.new(0, 10),
-    ButtonHeight = 38,
-    Font = Enum.Font.Gotham,
-    TitleFont = Enum.Font.GothamBold
+
+    !!! Experienced Coders Only !!!
+    Looking to use the admin? You're in the wrong place!
+    Get this: https://www.roblox.com/library/564796604/Basic-Admin-Essentials-2-0
+
+    Anything that is not directly creddited by anyone in specific was
+    created by @r_r, otherwise it was created by their respective
+    owners.
+
+    Do not redistribute without proper
+    credits to the actual creators
+
+--]]
+
+-- ... (الجزء العلوي من السكريبت يبقى كما هو حتى sysTable)
+
+local sysTable = {
+    -- ... (بقية الإعدادات تبقى كما هي)
+    
+    -- إضافة إعدادات جديدة للواجهة
+    UISettings = {
+        ThemeColor = Color3.fromRGB(0, 120, 215), -- لون رئيسي جديد
+        DarkColor = Color3.fromRGB(40, 40, 40),
+        LightColor = Color3.fromRGB(240, 240, 240),
+        Font = Enum.Font.SourceSans,
+        TitleFont = Enum.Font.SourceSansBold,
+        MobileBreakpoint = 600, -- عندما تكون الشاشة أصغر من هذا الرقم، يتم تفعيل وضع الهاتف
+        Animations = {
+            Speed = 0.2, -- سرعة الأنيميشن
+            Easing = Enum.EasingStyle.Quad -- نوع الأنيميشن
+        },
+        CornerRadius = UDim.new(0, 8) -- زوايا دائرية للعناصر
+    }
 }
 
--- إنشاء واجهة DynaFlip الرئيسية
-local DynaFlipGUI = Instance.new("ScreenGui")
-DynaFlipGUI.Name = "DynaFlipGUI"
-DynaFlipGUI.Parent = CoreGui
-DynaFlipGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- ... (بقية المتغيرات تبقى كما هي)
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = DynaFlipGUI
-MainFrame.BackgroundColor3 = GUI_SETTINGS.MainColor
-MainFrame.Position = UDim2.new(0.35, 0, 0.3, 0)
-MainFrame.Size = UDim2.new(0, 360, 0, 480)
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+-- =============================================
+-- وظائف مساعدة جديدة للواجهة
+-- =============================================
 
--- إضافة تأثير الزوايا المستديرة
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = GUI_SETTINGS.CornerRadius
-UICorner.Parent = MainFrame
+local function createDraggable(frame, handle)
+    local dragging = false
+    local dragInput, dragStart, startPos
 
--- رأس الواجهة مع تأثيرات مميزة
-local Header = Instance.new("Frame")
-Header.Name = "Header"
-Header.Parent = MainFrame
-Header.BackgroundColor3 = GUI_SETTINGS.HeaderColor
-Header.Size = UDim2.new(1, 0, 0, 45)
-Header.ZIndex = 2
-
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, GUI_SETTINGS.CornerRadius.Offset)
-HeaderCorner.Parent = Header
-
-local Title = Instance.new("TextLabel")
-Title.Name = "Title"
-Title.Parent = Header
-Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0.05, 0, 0, 0)
-Title.Size = UDim2.new(0.8, 0, 1, 0)
-Title.Font = GUI_SETTINGS.TitleFont
-Title.Text = "DynaFlip"
-Title.TextColor3 = GUI_SETTINGS.AccentColor
-Title.TextSize = 20
-Title.TextXAlignment = Enum.TextXAlignment.Left
-
--- زر إغلاق متحرك
-local CloseButton = Instance.new("TextButton")
-CloseButton.Name = "CloseButton"
-CloseButton.Parent = Header
-CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-CloseButton.Position = UDim2.new(0.85, 0, 0.15, 0)
-CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Font = GUI_SETTINGS.TitleFont
-CloseButton.Text = "×"
-CloseButton.TextColor3 = GUI_SETTINGS.TextColor
-CloseButton.TextSize = 24
-CloseButton.ZIndex = 3
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(1, 0)
-CloseCorner.Parent = CloseButton
-
--- قائمة الأوامر مع تمرير سلس
-local CommandsFrame = Instance.new("ScrollingFrame")
-CommandsFrame.Name = "CommandsFrame"
-CommandsFrame.Parent = MainFrame
-CommandsFrame.BackgroundTransparency = 1
-CommandsFrame.Position = UDim2.new(0, 0, 0, 50)
-CommandsFrame.Size = UDim2.new(1, 0, 1, -50)
-CommandsFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
-CommandsFrame.ScrollBarThickness = 6
-CommandsFrame.ScrollBarImageColor3 = GUI_SETTINGS.AccentColor
-
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Parent = CommandsFrame
-UIListLayout.Padding = UDim.new(0, 10)
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
--- وظيفة إنشاء أزرار بأسلوب DynaFlip
-local function CreateDynaButton(ButtonName)
-    local Button = Instance.new("TextButton")
-    Button.Name = ButtonName
-    Button.Parent = CommandsFrame
-    Button.BackgroundColor3 = GUI_SETTINGS.ButtonColor
-    Button.Size = UDim2.new(0.92, 0, 0, GUI_SETTINGS.ButtonHeight)
-    Button.Font = GUI_SETTINGS.Font
-    Button.Text = ButtonName
-    Button.TextColor3 = GUI_SETTINGS.TextColor
-    Button.TextSize = 14
-    Button.AutoButtonColor = false
-    
-    local ButtonCorner = Instance.new("UICorner")
-    ButtonCorner.CornerRadius = GUI_SETTINGS.CornerRadius
-    ButtonCorner.Parent = Button
-    
-    -- تأثيرات hover للزر
-    local ButtonStroke = Instance.new("UIStroke")
-    ButtonStroke.Parent = Button
-    ButtonStroke.Color = GUI_SETTINGS.AccentColor
-    ButtonStroke.Thickness = 0
-    ButtonStroke.Transparency = 0.8
-    
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(ButtonStroke, TweenInfo.new(0.15), {Thickness = 1, Transparency = 0}):Play()
-        TweenService:Create(Button, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}):Play()
-    end)
-    
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(ButtonStroke, TweenInfo.new(0.15), {Thickness = 0, Transparency = 0.8}):Play()
-        TweenService:Create(Button, TweenInfo.new(0.15), {BackgroundColor3 = GUI_SETTINGS.ButtonColor}):Play()
-    end)
-    
-    return Button
-end
-
--- إنشاء أزرار الأوامر
-local PlayerCommands = {
-    "Ban Player",
-    "Ban All",
-    "Kick Player", 
-    "Kick All",
-    "Teleport To Player",
-    "Bring Player"
-}
-
-local BuildingCommands = {
-    "Give F3X",
-    "Give F3X All",
-    "Delete Parts",
-    "Delete All Parts",
-    "Save Map",
-    "Load Map",
-    "Fly Mode",
-    "Noclip Mode"
-}
-
-local SectionLabel = function(Text, Parent)
-    local Label = Instance.new("TextLabel")
-    Label.Name = Text.."Label"
-    Label.Parent = Parent
-    Label.BackgroundTransparency = 1
-    Label.Size = UDim2.new(0.92, 0, 0, 30)
-    Label.Font = GUI_SETTINGS.TitleFont
-    Label.Text = ":: "..Text.." ::"
-    Label.TextColor3 = GUI_SETTINGS.AccentColor
-    Label.TextSize = 16
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    
-    return Label
-end
-
--- إضافة أقسام الأوامر
-SectionLabel("Player Controls", CommandsFrame)
-for _, cmd in ipairs(PlayerCommands) do
-    CreateDynaButton(cmd)
-end
-
-SectionLabel("Building Tools", CommandsFrame)
-for _, cmd in ipairs(BuildingCommands) do
-    CreateDynaButton(cmd)
-end
-
--- أنيميشنات الواجهة
-local function ToggleGUI()
-    if MainFrame.Size == UDim2.new(0, 360, 0, 480) then
-        -- إغلاق مع أنيميشن
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-            Size = UDim2.new(0, 0, 0, 0),
-            Position = UDim2.new(0.5, 0, 0.5, 0)
-        }):Play()
-    else
-        -- فتح مع أنيميشن
-        MainFrame.Visible = true
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-            Size = UDim2.new(0, 360, 0, 480),
-            Position = UDim2.new(0.5, 0, 0.5, 0)
-        }):Play()
-    end
-end
-
--- تفعيل/إلغاء الواجهة بالضغط على F5
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.F5 and not gameProcessed then
-        ToggleGUI()
-    end
-end)
-
-CloseButton.MouseButton1Click:Connect(ToggleGUI)
-
--- نظام سحب الواجهة
-local Dragging, DragInput, DragStart, StartPos
-
-Header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        Dragging = true
-        DragStart = input.Position
-        StartPos = MainFrame.Position
-        
-        local connection
-        connection = input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                Dragging = false
-                connection:Disconnect()
-            end
-        end)
-    end
-end)
-
-Header.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        DragInput = input
-    end
-end)
-
-UIS.InputChanged:Connect(function(input)
-    if input == DragInput and Dragging then
-        local delta = input.Position - DragStart
-        MainFrame.Position = UDim2.new(
-            StartPos.X.Scale, 
-            StartPos.X.Offset + delta.X,
-            StartPos.Y.Scale, 
-            StartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- نظام تغيير حجم الواجهة
-local Resizing, ResizeStart
-
-local ResizeHandle = Instance.new("Frame")
-ResizeHandle.Name = "ResizeHandle"
-ResizeHandle.Parent = MainFrame
-ResizeHandle.BackgroundTransparency = 1
-ResizeHandle.Size = UDim2.new(0, 20, 0, 20)
-ResizeHandle.Position = UDim2.new(1, -20, 1, -20)
-ResizeHandle.ZIndex = 2
-
-local ResizeIcon = Instance.new("ImageLabel")
-ResizeIcon.Name = "ResizeIcon"
-ResizeIcon.Parent = ResizeHandle
-ResizeIcon.BackgroundTransparency = 1
-ResizeIcon.Size = UDim2.new(1, 0, 1, 0)
-ResizeIcon.Image = "rbxassetid://3926305904"
-ResizeIcon.ImageRectOffset = Vector2.new(524, 964)
-ResizeIcon.ImageRectSize = Vector2.new(36, 36)
-ResizeIcon.ImageColor3 = Color3.fromRGB(150, 150, 150)
-
-ResizeHandle.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        Resizing = true
-        ResizeStart = input.Position
-    end
-end)
-
-UIS.InputChanged:Connect(function(input)
-    if Resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - ResizeStart
-        local newSize = UDim2.new(
-            0, math.clamp(MainFrame.AbsoluteSize.X + delta.X, 300, 600),
-            0, math.clamp(MainFrame.AbsoluteSize.Y + delta.Y, 400, 800)
-        )
-        MainFrame.Size = newSize
-        ResizeStart = input.Position
-    end
-end)
-
-UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        Resizing = false
-    end
-end)
-
--- نظام اختيار اللاعبين
-local function ShowPlayerSelection(Callback)
-    local SelectionFrame = Instance.new("Frame")
-    SelectionFrame.Name = "PlayerSelectionFrame"
-    SelectionFrame.Parent = DynaFlipGUI
-    SelectionFrame.BackgroundColor3 = GUI_SETTINGS.HeaderColor
-    SelectionFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    SelectionFrame.Size = UDim2.new(0, 280, 0, 350)
-    SelectionFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    SelectionFrame.ZIndex = 10
-    
-    local SelectionCorner = Instance.new("UICorner")
-    SelectionCorner.Parent = SelectionFrame
-    
-    local Title = Instance.new("TextLabel")
-    Title.Parent = SelectionFrame
-    Title.BackgroundTransparency = 1
-    Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.Font = GUI_SETTINGS.TitleFont
-    Title.Text = "Select Player"
-    Title.TextColor3 = GUI_SETTINGS.AccentColor
-    Title.TextSize = 18
-    
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Parent = Title
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-    CloseButton.Position = UDim2.new(0.9, 0, 0.1, 0)
-    CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    CloseButton.Font = GUI_SETTINGS.TitleFont
-    CloseButton.Text = "×"
-    CloseButton.TextColor3 = GUI_SETTINGS.TextColor
-    CloseButton.TextSize = 20
-    CloseButton.ZIndex = 11
-    
-    local PlayersList = Instance.new("ScrollingFrame")
-    PlayersList.Parent = SelectionFrame
-    PlayersList.BackgroundTransparency = 1
-    PlayersList.Position = UDim2.new(0, 0, 0, 45)
-    PlayersList.Size = UDim2.new(1, 0, 1, -45)
-    PlayersList.CanvasSize = UDim2.new(0, 0, 0, 0)
-    PlayersList.ScrollBarThickness = 6
-    
-    local Layout = Instance.new("UIListLayout")
-    Layout.Parent = PlayersList
-    Layout.Padding = UDim.new(0, 5)
-    
-    local players = game:GetService("Players"):GetPlayers()
-    for i, player in ipairs(players) do
-        if player ~= Player then
-            local PlayerButton = CreateDynaButton(player.Name)
-            PlayerButton.Parent = PlayersList
-            PlayerButton.Size = UDim2.new(0.95, 0, 0, 35)
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
             
-            PlayerButton.MouseButton1Click:Connect(function()
-                Callback(player)
-                SelectionFrame:Destroy()
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
             end)
-            
-            PlayersList.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y)
+        end
+    end)
+
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale, 
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+local function createButton(container, text, size, position, callback)
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Text = text
+    button.Font = sysTable.UISettings.Font
+    button.TextSize = 14
+    button.TextColor3 = sysTable.UISettings.LightColor
+    button.BackgroundColor3 = sysTable.UISettings.ThemeColor
+    button.BorderSizePixel = 0
+    button.Size = size
+    button.Position = position
+    button.AutoButtonColor = true
+    button.Parent = container
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = sysTable.UISettings.CornerRadius
+    corner.Parent = button
+    
+    button.MouseButton1Click:Connect(callback)
+    
+    return button
+end
+
+local function createFrame(name, size, position, parent, visible)
+    local frame = Instance.new("Frame")
+    frame.Name = name
+    frame.Size = size
+    frame.Position = position
+    frame.BackgroundColor3 = sysTable.UISettings.DarkColor
+    frame.BackgroundTransparency = 0.1
+    frame.ClipsDescendants = true
+    frame.Visible = visible or false
+    frame.Parent = parent
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = sysTable.UISettings.CornerRadius
+    corner.Parent = frame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = sysTable.UISettings.ThemeColor
+    stroke.Thickness = 1
+    stroke.Parent = frame
+    
+    return frame
+end
+
+local function createScrollingFrame(name, size, position, parent)
+    local frame = Instance.new("ScrollingFrame")
+    frame.Name = name
+    frame.Size = size
+    frame.Position = position
+    frame.BackgroundTransparency = 1
+    frame.ScrollBarThickness = 5
+    frame.ScrollBarImageColor3 = sysTable.UISettings.ThemeColor
+    frame.Parent = parent
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 5)
+    layout.Parent = frame
+    
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        frame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+    end)
+    
+    return frame
+end
+
+local function createLabel(text, size, position, parent, isTitle)
+    local label = Instance.new("TextLabel")
+    label.Name = text .. "Label"
+    label.Text = text
+    label.Font = isTitle and sysTable.UISettings.TitleFont or sysTable.UISettings.Font
+    label.TextSize = isTitle and 18 or 14
+    label.TextColor3 = sysTable.UISettings.LightColor
+    label.BackgroundTransparency = 1
+    label.Size = size
+    label.Position = position
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = parent
+    
+    return label
+end
+
+-- =============================================
+-- واجهة الأوامر (Commands List)
+-- =============================================
+
+local function createCommandsUI(playerGui)
+    local commandsFrame = createFrame("CommandsFrame", 
+        UDim2.new(0.35, 0, 0.5, 0), 
+        UDim2.new(0.6, 10, 0.25, 0), 
+        playerGui)
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = sysTable.UISettings.ThemeColor
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = commandsFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = titleBar
+    
+    local title = createLabel("Commands List", 
+        UDim2.new(0.7, 0, 1, 0), 
+        UDim2.new(0.15, 0, 0, 0), 
+        titleBar, true)
+    
+    local closeButton = createButton(titleBar, "X", 
+        UDim2.new(0, 30, 0, 30), 
+        UDim2.new(0.9, 0, 0, 0),
+        function()
+            commandsFrame.Visible = false
+        end)
+    
+    createDraggable(commandsFrame, titleBar)
+    
+    local searchBox = Instance.new("TextBox")
+    searchBox.Name = "SearchBox"
+    searchBox.Size = UDim2.new(0.9, 0, 0, 30)
+    searchBox.Position = UDim2.new(0.05, 0, 0, 40)
+    searchBox.Font = sysTable.UISettings.Font
+    searchBox.TextSize = 14
+    searchBox.PlaceholderText = "Search commands..."
+    searchBox.TextColor3 = sysTable.UISettings.LightColor
+    searchBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    searchBox.BorderSizePixel = 0
+    searchBox.Parent = commandsFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = sysTable.UISettings.CornerRadius
+    corner.Parent = searchBox
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.Parent = searchBox
+    
+    local scrollFrame = createScrollingFrame("CommandsScroll", 
+        UDim2.new(0.9, 0, 0.7, -80), 
+        UDim2.new(0.05, 0, 0, 80), 
+        commandsFrame)
+    
+    -- وظيفة لملء قائمة الأوامر
+    local function populateCommands()
+        for _, child in ipairs(scrollFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        
+        local permission = returnPermission(game.Players.LocalPlayer)
+        local searchText = string.lower(searchBox.Text)
+        
+        for _, cmd in ipairs(Commands) do
+            if cmd[4] <= permission and 
+               (string.find(string.lower(cmd[1]), searchText) or 
+                string.find(string.lower(cmd[5][3]), searchText)) then
+                
+                local cmdButton = createButton(scrollFrame, cmd[1], 
+                    UDim2.new(1, 0, 0, 30), 
+                    UDim2.new(0, 0, 0, 0),
+                    function()
+                        -- تنفيذ الأمر عند النقر
+                        remoteEvent:FireServer("Execute", cmd[2] .. cmd[1])
+                    end)
+                
+                local descLabel = createLabel(cmd[5][3], 
+                    UDim2.new(1, -10, 0, 20), 
+                    UDim2.new(0, 5, 0, 30), 
+                    cmdButton)
+                descLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                descLabel.TextSize = 12
+                
+                cmdButton.Size = UDim2.new(1, 0, 0, 50)
+            end
         end
     end
     
-    CloseButton.MouseButton1Click:Connect(function()
-        SelectionFrame:Destroy()
-    end)
+    searchBox:GetPropertyChangedSignal("Text"):Connect(populateCommands)
+    populateCommands()
+    
+    return commandsFrame
 end
 
--- ربط الأوامر بالوظائف
-CommandsFrame:FindFirstChild("Ban Player").MouseButton1Click:Connect(function()
-    ShowPlayerSelection(function(player)
-        -- كود حظر اللاعب
-        print("Banning player:", player.Name)
+-- =============================================
+-- شريط الأوامر (CMD Bar)
+-- =============================================
+
+local function createCMDBar(playerGui)
+    local cmdBar = createFrame("CMDBar", 
+        UDim2.new(0.4, 0, 0, 40), 
+        UDim2.new(0.3, 0, 1, -50), 
+        playerGui, true)
+    
+    local cmdInput = Instance.new("TextBox")
+    cmdInput.Name = "CMDInput"
+    cmdInput.Size = UDim2.new(0.8, 0, 0.8, 0)
+    cmdInput.Position = UDim2.new(0.1, 0, 0.1, 0)
+    cmdInput.Font = sysTable.UISettings.Font
+    cmdInput.TextSize = 14
+    cmdInput.PlaceholderText = "Type command here..."
+    cmdInput.TextColor3 = sysTable.UISettings.LightColor
+    cmdInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    cmdInput.BorderSizePixel = 0
+    cmdInput.ClearTextOnFocus = false
+    cmdInput.Parent = cmdBar
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = sysTable.UISettings.CornerRadius
+    corner.Parent = cmdInput
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.Parent = cmdInput
+    
+    cmdInput.Focused:Connect(function()
+        cmdInput.PlaceholderText = sysTable.Prefix .. "command"
     end)
-end)
+    
+    cmdInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed and cmdInput.Text ~= "" then
+            remoteEvent:FireServer("Execute", cmdInput.Text)
+            cmdInput.Text = ""
+        end
+    end)
+    
+    return cmdBar
+end
 
-CommandsFrame:FindFirstChild("Ban All").MouseButton1Click:Connect(function()
-    -- كود حظر جميع اللاعبين
-    print("Banning all players")
-end)
+-- =============================================
+-- واجهة حالة الحظر (Ban Status)
+-- =============================================
 
--- يمكنك إضافة باقي الأوامر بنفس الطريقة
+local function createBanStatusUI(playerGui)
+    local banFrame = createFrame("BanStatusFrame", 
+        UDim2.new(0.3, 0, 0.3, 0), 
+        UDim2.new(0.35, 0, 0.35, 0), 
+        playerGui)
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = banFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = titleBar
+    
+    local title = createLabel("Ban Status", 
+        UDim2.new(0.7, 0, 1, 0), 
+        UDim2.new(0.15, 0, 0, 0), 
+        titleBar, true)
+    
+    local closeButton = createButton(titleBar, "X", 
+        UDim2.new(0, 30, 0, 30), 
+        UDim2.new(0.9, 0, 0, 0),
+        function()
+            banFrame.Visible = false
+        end)
+    
+    createDraggable(banFrame, titleBar)
+    
+    local scrollFrame = createScrollingFrame("BanScroll", 
+        UDim2.new(0.9, 0, 0.8, -40), 
+        UDim2.new(0.05, 0, 0, 40), 
+        banFrame)
+    
+    -- وظيفة لتحديث حالة الحظر
+    local function updateBanStatus()
+        for _, child in ipairs(scrollFrame:GetChildren()) do
+            if child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
+        
+        local bannedPlayers = {}
+        for userId, playerName in pairs(sysTable.Permissions.Banned) do
+            table.insert(bannedPlayers, {userId = userId, name = playerName})
+        end
+        
+        if #bannedPlayers == 0 then
+            local noBansLabel = createLabel("No players are currently banned.", 
+                UDim2.new(1, 0, 0, 30), 
+                UDim2.new(0, 0, 0, 0), 
+                scrollFrame)
+            return
+        end
+        
+        for _, banned in ipairs(bannedPlayers) do
+            local playerFrame = createFrame("PlayerFrame", 
+                UDim2.new(1, 0, 0, 60), 
+                UDim2.new(0, 0, 0, 0), 
+                scrollFrame)
+            playerFrame.BackgroundTransparency = 0.7
+            
+            local nameLabel = createLabel(banned.name, 
+                UDim2.new(0.7, 0, 0.5, 0), 
+                UDim2.new(0.05, 0, 0, 5), 
+                playerFrame, true)
+            
+            local idLabel = createLabel("ID: " .. banned.userId, 
+                UDim2.new(0.7, 0, 0.5, 0), 
+                UDim2.new(0.05, 0, 0.5, 0), 
+                playerFrame)
+            idLabel.TextSize = 12
+            
+            local unbanButton = createButton(playerFrame, "Unban", 
+                UDim2.new(0.2, 0, 0.6, 0), 
+                UDim2.new(0.75, 0, 0.2, 0),
+                function()
+                    remoteEvent:FireServer("Execute", sysTable.Prefix .. "unban " .. banned.name)
+                end)
+        end
+    end
+    
+    updateBanStatus()
+    
+    -- تحديث القائمة عند تغيير حالة الحظر
+    remoteEvent.OnClientEvent:Connect(function(action, data)
+        if action == "Ban Update" then
+            updateBanStatus()
+        end
+    end)
+    
+    return banFrame
+end
+
+-- =============================================
+-- واجهة إدارة المشرفين (Admin Management)
+-- =============================================
+
+local function createAdminManagementUI(playerGui)
+    local adminFrame = createFrame("AdminManagementFrame", 
+        UDim2.new(0.35, 0, 0.5, 0), 
+        UDim2.new(0.1, 10, 0.25, 0), 
+        playerGui)
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = sysTable.UISettings.ThemeColor
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = adminFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = titleBar
+    
+    local title = createLabel("Admin Management", 
+        UDim2.new(0.7, 0, 1, 0), 
+        UDim2.new(0.15, 0, 0, 0), 
+        titleBar, true)
+    
+    local closeButton = createButton(titleBar, "X", 
+        UDim2.new(0, 30, 0, 30), 
+        UDim2.new(0.9, 0, 0, 0),
+        function()
+            adminFrame.Visible = false
+        end)
+    
+    createDraggable(adminFrame, titleBar)
+    
+    local playerSearch = Instance.new("TextBox")
+    playerSearch.Name = "PlayerSearch"
+    playerSearch.Size = UDim2.new(0.6, 0, 0, 30)
+    playerSearch.Position = UDim2.new(0.05, 0, 0, 40)
+    playerSearch.Font = sysTable.UISettings.Font
+    playerSearch.TextSize = 14
+    playerSearch.PlaceholderText = "Search players..."
+    playerSearch.TextColor3 = sysTable.UISettings.LightColor
+    playerSearch.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    playerSearch.BorderSizePixel = 0
+    playerSearch.Parent = adminFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = sysTable.UISettings.CornerRadius
+    corner.Parent = playerSearch
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.Parent = playerSearch
+    
+    local searchButton = createButton(adminFrame, "Search", 
+        UDim2.new(0.3, -10, 0, 30), 
+        UDim2.new(0.65, 0, 0, 40),
+        function()
+            -- سيتم تنفيذ البحث عند النقر
+        end)
+    
+    local playersScroll = createScrollingFrame("PlayersScroll", 
+        UDim2.new(0.9, 0, 0.5, -90), 
+        UDim2.new(0.05, 0, 0, 80), 
+        adminFrame)
+    
+    local adminScroll = createScrollingFrame("AdminsScroll", 
+        UDim2.new(0.9, 0, 0.4, -10), 
+        UDim2.new(0.05, 0, 0.55, 0), 
+        adminFrame)
+    
+    -- وظيفة لملء قائمة اللاعبين
+    local function populatePlayers(searchText)
+        for _, child in ipairs(playersScroll:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        
+        searchText = searchText and string.lower(searchText) or ""
+        
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if string.find(string.lower(player.Name), searchText) or searchText == "" then
+                local playerButton = createButton(playersScroll, player.Name, 
+                    UDim2.new(1, 0, 0, 40), 
+                    UDim2.new(0, 0, 0, 0),
+                    function()
+                        -- عرض خيارات الإدارة عند النقر على اللاعب
+                    end)
+                
+                local playerLevel = returnPermission(player)
+                local levelLabel = createLabel("Level: " .. playerLevel, 
+                    UDim2.new(0.5, 0, 0.5, 0), 
+                    UDim2.new(0.5, 0, 0.25, 0), 
+                    playerButton)
+                levelLabel.TextSize = 12
+            end
+        end
+    end
+    
+    -- وظيفة لملء قائمة المشرفين
+    local function populateAdmins()
+        for _, child in ipairs(adminScroll:GetChildren()) do
+            if child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
+        
+        local admins = {}
+        for rank, data in pairs(sysTable.Permissions) do
+            if type(data) == "table" and data[1] and data[2] then
+                for userId, playerName in pairs(data[2]) do
+                    table.insert(admins, {
+                        name = playerName,
+                        level = data[1],
+                        rank = rank
+                    })
+                end
+            end
+        end
+        
+        table.sort(admins, function(a, b) return a.level > b.level end)
+        
+        for _, admin in ipairs(admins) do
+            local adminFrame = createFrame("AdminFrame", 
+                UDim2.new(1, 0, 0, 50), 
+                UDim2.new(0, 0, 0, 0), 
+                adminScroll)
+            adminFrame.BackgroundTransparency = 0.7
+            
+            local nameLabel = createLabel(admin.name, 
+                UDim2.new(0.6, 0, 0.5, 0), 
+                UDim2.new(0.05, 0, 0, 5), 
+                adminFrame, true)
+            nameLabel.TextSize = 14
+            
+            local rankLabel = createLabel(admin.rank, 
+                UDim2.new(0.3, 0, 0.5, 0), 
+                UDim2.new(0.65, 0, 0, 5), 
+                adminFrame)
+            rankLabel.TextXAlignment = Enum.TextXAlignment.Right
+        end
+    end
+    
+    playerSearch:GetPropertyChangedSignal("Text"):Connect(function()
+        populatePlayers(playerSearch.Text)
+    end)
+    
+    -- تحديث القوائم عند تغيير حالة المشرفين
+    remoteEvent.OnClientEvent:Connect(function(action, data)
+        if action == "Admin Update" then
+            populatePlayers(playerSearch.Text)
+            populateAdmins()
+        end
+    end)
+    
+    populatePlayers()
+    populateAdmins()
+    
+    return adminFrame
+end
+
+-- =============================================
+-- الواجهة الرئيسية (Main UI)
+-- =============================================
+
+local function createMainUI(playerGui)
+    local mainFrame = createFrame("MainAdminFrame", 
+        UDim2.new(0, 200, 0, 300), 
+        UDim2.new(0, 10, 0.5, -150), 
+        playerGui, true)
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = sysTable.UISettings.ThemeColor
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = titleBar
+    
+    local title = createLabel("Basic Admin", 
+        UDim2.new(0.7, 0, 1, 0), 
+        UDim2.new(0.15, 0, 0, 0), 
+        titleBar, true)
+    
+    local closeButton = createButton(titleBar, "X", 
+        UDim2.new(0, 30, 0, 30), 
+        UDim2.new(0.9, 0, 0, 0),
+        function()
+            mainFrame.Visible = false
+        end)
+    
+    createDraggable(mainFrame, titleBar)
+    
+    local buttonsScroll = createScrollingFrame("ButtonsScroll", 
+        UDim2.new(0.9, 0, 0.9, -40), 
+        UDim2.new(0.05, 0, 0, 40), 
+        mainFrame)
+    
+    -- إنشاء أزرار الواجهة الرئيسية
+    local commandsButton = createButton(buttonsScroll, "Commands", 
+        UDim2.new(1, 0, 0, 40), 
+        UDim2.new(0, 0, 0, 0),
+        function()
+            -- عرض واجهة الأوامر
+            local commandsUI = playerGui:FindFirstChild("CommandsFrame")
+            if commandsUI then
+                commandsUI.Visible = not commandsUI.Visible
+            else
+                commandsUI = createCommandsUI(playerGui)
+                commandsUI.Visible = true
+            end
+        end)
+    
+    local banButton = createButton(buttonsScroll, "Ban Status", 
+        UDim2.new(1, 0, 0, 40), 
+        UDim2.new(0, 0, 0, 50),
+        function()
+            -- عرض واجهة حالة الحظر
+            local banUI = playerGui:FindFirstChild("BanStatusFrame")
+            if banUI then
+                banUI.Visible = not banUI.Visible
+            else
+                banUI = createBanStatusUI(playerGui)
+                banUI.Visible = true
+            end
+        end)
+    
+    local adminButton = createButton(buttonsScroll, "Admin Management", 
+        UDim2.new(1, 0, 0, 40), 
+        UDim2.new(0, 0, 0, 100),
+        function()
+            -- عرض واجهة إدارة المشرفين
+            local adminUI = playerGui:FindFirstChild("AdminManagementFrame")
+            if adminUI then
+                adminUI.Visible = not adminUI.Visible
+            else
+                adminUI = createAdminManagementUI(playerGui)
+                adminUI.Visible = true
+            end
+        end)
+    
+    local settingsButton = createButton(buttonsScroll, "Settings", 
+        UDim2.new(1, 0, 0, 40), 
+        UDim2.new(0, 0, 0, 150),
+        function()
+            -- عرض إعدادات الواجهة (يمكن تطويرها لاحقًا)
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Settings",
+                Text = "Settings UI will be implemented in future updates.",
+                Duration = 5
+            })
+        end)
+    
+    -- إضافة أنيميشن للواجهة عند الظهور
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    mainFrame.Visible = true
+    
+    local tweenInfo = TweenInfo.new(
+        sysTable.UISettings.Animations.Speed,
+        sysTable.UISettings.Animations.Easing
+    )
+    
+    local tween = game:GetService("TweenService"):Create(
+        mainFrame,
+        tweenInfo,
+        {Size = UDim2.new(0, 200, 0, 300)}
+    )
+    tween:Play()
+    
+    return mainFrame
+end
+
+-- =============================================
+-- تعديل وظيفة managePlayer لإضافة الواجهات
+-- =============================================
+
+local function managePlayer(Player)
+    addLog(sysTable.joinLogs,Player.Name)
+
+    local Succ,Msg = pcall(function()
+        insertPermissions(Player)
+    end)
+
+    if not Succ and Msg then
+        addLog(sysTable.debugLogs,"insertPermissions Error: "..tostring((Msg or "")))
+        remoteEvent:FireClient(Player,'Message','Error','An error occurred with Roblox while trying to give you admin permissions. Try rejoining to resolve this issue.')
+    end
+
+    if sysTable.serverLocked then
+        if returnPermission(Player) == 0 then
+            Player:Kick('Basic Admin\n'..sysTable.serverLockReason)
+            return ('"'..Player.Name..'" | User ID: '..Player.UserId..' tried to join but the server is locked.')
+        end
+    end
+
+    if sysTable.Permissions.Banned[tostring(Player.UserId)] then
+        Player:Kick('Basic Admin\n'..sysTable.banReason)
+        return ('"'..Player.Name..'" | User ID: '..Player.UserId..' is banned and cannot join the server.')
+    end
+
+    local trelloBanned
+    if bansLoaded then
+        trelloBanned = checkTrelloBan(Player)
+        if trelloBanned then
+            return ('"'..Player.Name..'" | User ID: '..Player.UserId..' is trello-banned and cannot join the server.')
+        end
+    else
+        spawn(function()
+            checkTrelloBan(Player)
+        end)
+    end
+
+    if not pendingPSAs[Player] then
+        pendingPSAs[Player] = {}
+    end
+
+    if not pendingPSAs[Player]['all'] then
+        if os.time() < 1710028800 then
+            local AcknowledgedPSA = checkForAcknowledgement(Player,'all')
+            if not AcknowledgedPSA then
+                pendingPSAs[Player]['all'] = {
+                    Title = "Basic Admin Changelog",
+                    Info = sysTable.Changelog
+                }
+            end
+        end
+    end
+
+    if not runService:IsStudio() then
+        local Succ,Msg = pcall(function()
+            local banData = DataCategory.get(Player.UserId..'_Banned')
+            if banData then
+                local reasonString = ''
+                if banData.Reason then
+                    local tempString = ''
+                    local Cleaned,newData = cleanUserData(banData.Reason,Player,false)
+
+                    if Cleaned and newData then
+                        tempString = newData
+                    elseif not Cleaned and not newData then
+                        tempString = '\nA reason was provided, but your privacy settings prevent you from seeing it.'
+                    end
+
+                    if tempString ~= '' then
+                        reasonString = ', Reason: '..tempString
+                    end
+                end
+
+                Player:Kick('Basic Admin\n'..sysTable.banReason..'\nPermanently'..reasonString)
+                return ('"'..Player.Name..'" | User ID: '..Player.UserId..' is perm-banned and cannot join the server. (New)')
+            else
+                local oldBans
+                local Succ,Msg = pcall(function()
+                    oldBans = DataCategory.get("Bans")
+                end)
+                if Succ and oldBans then
+                    for c,d in next,oldBans do
+                        if d and d[1] ~= nil then
+                            if tostring(d[1]) == tostring(Player.UserId) then -- and not DataCategory.get(Player.UserId..'_Banned')
+                                local additionalString = "."
+                                if d[3] ~= nil then
+                                    additionalString = ", "..tostring(d[3])
+                                end
+                                Player:Kick('Basic Admin\n'..sysTable.banReason..'\nPermanently'..additionalString)
+                                return ('"'..Player.Name..'" | User ID: '..Player.UserId..' is perm-banned and cannot join the server. (Old)')
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    if not Succ and Msg then
+        addLog(sysTable.debugLogs,"DataStore Error: "..tostring((Msg) or "nil"))
+    elseif Succ and Msg then
+        return Msg
+    end
+
+    local playerGui = getPlayerGui(Player)
+    if playerGui then
+        -- إنشاء الواجهات الرئيسية
+        createMainUI(playerGui)
+        createCMDBar(playerGui)
+        
+        -- إنشاء واجهة الأوامر ولكن إبقاؤها مخفية في البداية
+        createCommandsUI(playerGui).Visible = false
+        
+        -- إذا كان اللاعب مشرفًا، إنشاء واجهات الإدارة
+        if returnPermission(Player) > 0 then
+            createBanStatusUI(playerGui).Visible = false
+            createAdminManagementUI(playerGui).Visible = false
+        end
+    else
+        return ('"'..Player.Name..'" | User ID: '..Player.UserId..' was unable to get a PlayerGui obtained, they could have left.')
+    end
+
+    Player.Chatted:connect(function(Message)
+        onChatted(Message,Player,true)
+    end)
+
+    spawn(function()
+        pcall(function()
+            for otherPlayer,nameData in next,sysTable.localNames do
+                local filteredName
+                local Cleaned,newData = cleanUserData(nameData.Data,nameData.Sender,Player)
+
+                if Cleaned then
+                    filteredName = newData
+                end
+
+                if filteredName then
+                    for c,d in next,playerService:GetPlayers() do
+                        remoteEvent:FireClient(Player,'Local Name',otherPlayer,filteredName)
+                    end
+                end
+            end
+        end)
+    end)
+
+    Player.CharacterAdded:connect(function(Character)
+        spawn(function()
+            pcall(function()
+                if sysTable.localNames[Player] and sysTable.localNames[Player].Sender and sysTable.localNames[Player].Data then
+                    local filteredName
+                    local Cleaned,newData = cleanUserData(sysTable.localNames[Player].Data,sysTable.localNames[Player].Sender,Player)
+
+                    if Cleaned then
+                        filteredName = newData
+                    end
+
+                    if filteredName then
+                        for c,d in next,playerService:GetPlayers() do
+                            remoteEvent:FireClient(d,'Local Name',Player,filteredName)
+                        end
+                    end
+                end
+            end)
+        end)
+
+        if sysTable.donorPerks then
+            local capeData = getCapeData(Player)
+            if capeData then
+                awardCape(Player,capeData[1],capeData[2],capeData[3],capeData[4])
+            end
+        end
+    end)
+
+    spawn(function()
+        if Player.Character ~= nil and not Player.Character:FindFirstChild('BAE Cape') then
+            if sysTable.donorPerks then
+                local capeData = getCapeData(Player)
+                if capeData then
+                    awardCape(Player,capeData[1],capeData[2],capeData[3],capeData[4])
+                end
+            end
+        end
+    end)
+
+    if not sysTable.Permissions.gameOwners[tostring(Player.UserId)] then
+        if (Player.UserId == game.CreatorId) or (game.CreatorType == Enum.CreatorType.Group and Player:GetRankInGroup(game.CreatorId) == 255) then
+            sysTable.Permissions.gameOwners[2][tostring(Player.UserId)] = Player.Name
+        end
+    end
+
+    local Key = generateKey(Player)
+    local permissionLevel = returnPermission(Player)
+    local Setup = {
+        ['Permission'] = permissionLevel,
+        ['Key'] = Key,
+        ['Prefix'] = sysTable.Prefix,
+        ['actionPrefix'] = sysTable.actionPrefix,
+        ['Version'] = sysTable.adminVersion,
+        ['donorEnabled'] = sysTable.donorPerks,
+        ['Debugging'] = sysTable.creatorDebugging,
+        ['commandsTable'] = customCommands(Player),
+        ['UISettings'] = sysTable.UISettings -- إضافة إعدادات الواجهة
+    }
+
+    local Reply,Succ,Msg
+    local Tries = 0
+
+    repeat
+        if (not Player or Player.Parent ~= playerService) or Tries > 3 then
+            break
+        end
+        Succ,Msg = pcall(function()
+            Reply = remoteFunction:InvokeClient(Player,'Client Setup',Setup)
+        end)
+        Tries = Tries + 1
+        wait()
+    until Succ
+
+    if Succ and Reply and Reply == Key then
+        sysTable.Keys[tostring(Player.UserId)] = Key
+        remoteEvent:FireClient(Player,'Communications Ready')
+    else
+        return ('"'..Player.Name..'" | User ID: '..Player.UserId..', an error occurred while waiting for their setup response.')
+    end
+
+    pcall(function()
+        if not sysTable.donorCache[tostring(Player.UserId)] and Market:PlayerOwnsAsset(Player, sysTable.donorID) and sysTable.donorPerks then
+            sysTable.donorCache[tostring(Player.UserId)] = {}
+            remoteEvent:FireClient(Player,'Notif','Donor Perks','Click to view',{'Donate'})
+        end
+    end)
+
+    return ('Set up User "'..Player.Name..'" | User ID: '..Player.UserId),true
+end
+
+-- ... (بقية السكريبت يبقى كما هو)
