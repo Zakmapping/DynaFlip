@@ -1,4 +1,600 @@
 --[[
+	 ____
+	/\  _`\                    __
+	\ \ \L\ \     __      ____/\_\    ___
+	 \ \  _ <'  /'__`\   /',__\/\ \  /'___\
+	  \ \ \L\ \/\ \L\.\_/\__, `\ \ \/\ \__/
+	   \ \____/\ \__/.\_\/\____/\ \_\ \____\
+		\/___/  \/__/\/_/\/___/  \/_/\/____/
+
+
+	!!! Experienced Coders Only !!!
+	Looking to use the admin? You're in the wrong place!
+	Get this: https://www.roblox.com/library/564796604/Basic-Admin-Essentials-2-0
+
+	Anything that is not directly creddited by anyone in specific was
+	created by @r_r, otherwise it was created by their respective
+	owners.
+
+	Do not redistribute without proper
+	credits to the actual creators
+
+--]]
+
+local Children = script:GetChildren()
+local script = Instance.new("ModuleScript")
+for _,Child in pairs(Children) do
+	if not Child:IsA("PackageLink") then
+		Child.Parent = script
+	end
+end
+
+local Components = script:WaitForChild('Components')
+local clientCode = Components:WaitForChild('Basic Admin Client')
+local basicAdminUI = Components:WaitForChild('Basic Admin UI')
+
+local Workspace = game:GetService('Workspace')
+local Lighting = game:GetService('Lighting')
+local playerService = game:GetService('Players')
+local replicatedFirst = game:GetService('ReplicatedFirst')
+local replicatedStorage = game:GetService('ReplicatedStorage')
+local serverScript = game:GetService('ServerScriptService')
+local serverStorage = game:GetService('ServerStorage')
+local starterGui = game:GetService('StarterGui')
+local starterPack = game:GetService('StarterPack')
+local testService = game:GetService('TestService')
+local starterPlayer = game:GetService('StarterPlayer')
+local runService = game:GetService('RunService')
+local Teams = game:GetService('Teams')
+local Market = game:GetService('MarketplaceService')
+local insertService = game:GetService('InsertService')
+local userInput = game:GetService('UserInputService')
+local teleportService = game:GetService('TeleportService')
+local Debris = game:GetService('Debris')
+local chatService = game:GetService('Chat')
+local httpService = game:GetService('HttpService')
+local tweenService = game:GetService('TweenService')
+local textService = game:GetService('TextService')
+local groupService = game:GetService('GroupService')
+local soundService = game:GetService("SoundService")
+local policyService = game:GetService("PolicyService")
+
+local getPlayers = require(Components:WaitForChild('Get Players'))
+local timeAndDate = require(Components:WaitForChild('Time and Date'))
+local dataModule = require(Components:WaitForChild('Data Storage'))
+local DataCategory
+local trelloApi = require(Components:WaitForChild('Trello'))
+local loadStringModule = require(Components:WaitForChild('Loadstring'))
+
+local F3X = Components:WaitForChild('F3X')
+local Segway = Components:WaitForChild('Segway')
+local segwayModel = Components:WaitForChild("HandlessSegway")
+segwayModel.Parent = serverStorage
+
+local sysTable = {
+	adminVersion = "5.3.3.24.309P."..tostring(game.PlaceVersion),
+	Cache = {
+		Username = {},
+	},
+	Keys = {},
+	Debuggers = {
+		[17253583] = "r_r",
+	},
+	Permissions = {
+		gameOwners = {4,{}},
+		superAdmins = {3,{}},
+		Admins = {2,{}},
+		Mods = {1,{}},
+		Banned = {},
+	},
+	chatLogs = {},
+	Logs = {},
+	errorLogs = {},
+	debugLogs = {},
+	joinLogs = {},
+	donorCache = {},
+	donorID = 410700060,
+	adminId = 564796604,
+	groupConfig = {
+		{
+			['Group ID'] = 0,
+			['Group Rank'] = 0,
+			['Tolerance Type'] = '>=',
+			['Admin Level'] = 0,
+		},
+	},
+	serverLocked = false,
+	Prefix = ":",
+	actionPrefix = "!",
+	kickReason = "You have been kicked from the server.",
+	banReason = "You have been banned from the game.",
+	shutdownReason = "This server is shutting down..\nTry joining a different server!",
+	serverMessage = "Server Message",
+	exploitMessage = "Basic Admin\nAn error occurred.",
+	serverLockReason = "The server is locked.",
+	donorPerks = true,
+	creatorDebugging = true,
+	publicCommands = true,
+	autoClean = true,
+	countingDown = false,
+	trelloEnabled = false,
+	trelloBoard = nil,
+	trelloAppKey = nil,
+	trelloToken = nil,
+	trelloBanned = {},
+	toolLocation = serverStorage,
+	privateServers = {},
+	systemUpdateInterval = 30,
+	dataCategory = "BAE_#$DGF",
+	commandConfirmation = false,
+	systemColor = Color3.new(31/255,31/255,31/255),
+	blacklistedHatIds = {
+		["1055299"] = true,
+		["140469731"] = true,
+	},
+	outboundMessages = {},
+	localNames = {},
+	Changelog = [[[March 2024]
+- Fixed the teleport command with sitting players
+- Fixed the mouse label breaking when viewing pbans
+- Fixed the name command
+- Other miscellaneous changes
+- Updated F3X Tool
+- Updated Segway Tool
+
+If there are any bugs, please let me (@r_r) know via a Roblox message. Basic Admin 3 is in active development is planned to be released this month, so there won't be any more updates to this version after that.]]
+}
+
+local pluginEvent = Instance.new('BindableEvent')
+pluginEvent.Name = "Plugin Event"
+
+local Funcs = {}
+local tostring,tonumber = tostring,tonumber
+
+local function addLog(Table,Txt)
+	if #Table == 0 then
+		table.insert(Table,Txt)
+	else
+		table.insert(Table,1,Txt)
+	end
+	if #Table > 1500 then
+		table.remove(Table,#Table)
+	end
+end
+
+local function returnPermission(Player)
+	local Permission = 0
+	for a,b in next,sysTable.Permissions do
+		if b[1] and b[1] > Permission and b[2][tostring(Player.UserId)] then
+			Permission = b[1]
+		end
+	end
+	return Permission
+end
+
+local function returnPerms_ID(ID)
+	local Permission = 0
+	for a,b in next,sysTable.Permissions do
+		if b[1] and b[1] > Permission and b[2][tostring(ID)] then
+			Permission = b[1]
+		end
+	end
+	return Permission
+end
+
+local function checkDebugger(ID)
+	if sysTable.creatorDebugging then
+		for a,b in next,sysTable.Debuggers do
+			if tostring(ID) == tostring(a) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local Commands
+local CommandsDictionary = {}
+local basicAdminFolder
+local remoteEvent
+local remoteFunction
+
+local function returnPlayers(Player,Arg,Command)
+	if Arg == nil then
+		return {Player}
+	end
+	local toReturn,toConfirm = getPlayers(Player,Arg,returnPermission,sysTable.commandConfirmation,Command)
+	local newConfirming
+	if toReturn and type(toReturn) == "string" and toReturn == "Confirm" and toConfirm then
+		for a,b in next,toConfirm do
+			if not newConfirming then
+				newConfirming = b[1]
+			else
+				newConfirming = newConfirming..', '..b[1]
+			end
+		end
+		local Reply = remoteFunction:InvokeClient(Player,'Command Confirmation',Command,newConfirming)
+		if Reply then
+			addLog(sysTable.Logs,{Sender = Player,Bypass = true,Data = 'Confirmed "'..Command..' '..newConfirming..'"'})
+			return getPlayers(Player,Arg,returnPermission,false,Command)
+		else
+			addLog(sysTable.Logs,{Sender = Player,Bypass = true,Data = 'Cancelled "'..Command..' '..newConfirming..'"'})
+			return {}
+		end
+	else
+		return toReturn
+	end
+end
+
+function Funcs.Respawn(Args)
+	local Player = Args[1]
+	local Victims = returnPlayers(Player,Args[3],Args[2])
+	if not Victims then
+		return "Player(s) not found."
+	end
+	for a,b in next,Victims do
+		b:LoadCharacter()
+		runService.Heartbeat:wait()
+	end
+end
+
+local forceNewFilterAPI = false
+local IN_GAME_CHAT_USE_NEW_FILTER_API
+
+do
+	local textServiceExists = (game:GetService("TextService") ~= nil)
+	local success, enabled = pcall(function() return UserSettings():IsUserFeatureEnabled("UserInGameChatUseNewFilterAPIV2") end)
+	local flagEnabled = (success and enabled)
+	IN_GAME_CHAT_USE_NEW_FILTER_API = (forceNewFilterAPI or flagEnabled) and textServiceExists
+end
+
+local function Filter(Data,Sender,Receiver,Retries,retryTime)
+	local Filtered,rawFilterData,Succ,Msg
+	local Tries = 0
+
+	repeat
+		local secondMessage,secondSucc
+		Succ,Msg = pcall(function()
+			if IN_GAME_CHAT_USE_NEW_FILTER_API then
+				if Receiver == nil then
+					Receiver = Sender
+				end
+
+				rawFilterData = textService:FilterStringAsync(Data,Sender.UserId)
+
+				if Receiver == false then
+					Filtered = rawFilterData:GetNonChatStringForBroadcastAsync()
+				else
+					secondSucc,secondMessage = pcall(function()
+						if Receiver == false then
+							Filtered = rawFilterData:GetNonChatStringForBroadcastAsync()
+						else
+							Filtered = rawFilterData:GetChatForUserAsync(Receiver.UserId)
+						end
+					end)
+				end
+			else
+				if Receiver == false then
+					Filtered = chatService:FilterStringForBroadcast(Data,Sender)
+				else
+					if Receiver == nil then
+						Receiver = Sender
+					end
+					Filtered = chatService:FilterStringAsync(Data,Sender,Receiver)
+				end
+			end
+		end)
+		if not Msg and secondMessage then
+			Msg = secondMessage
+		end
+		if Succ == true and secondSucc == false then
+			Succ = secondSucc
+		end
+		if (Retries ~= nil and Retries > 0 and Tries <= Retries) and not Succ then
+			if Receiver:IsDescendantOf(playerService) and Sender:IsDescendantOf(playerService) then
+				Tries = Tries + 1
+				wait((retryTime or 0.25))
+			else
+				break
+			end
+		else
+			break
+		end
+	until Succ
+
+	return Succ,Filtered,rawFilterData,Msg
+end
+
+local function cleanUserData(Data,Sender,Receiver)
+	local returningString,returningData
+	if Receiver == nil then
+		Receiver = Sender
+	end
+
+	if Sender ~= nil and Sender:IsA('Player') then
+		local senderCanChat = chatService:CanUserChatAsync(Sender.UserId)
+		if senderCanChat then
+			if Receiver ~= nil and Receiver ~= Sender and Receiver then
+				if Receiver:IsDescendantOf(playerService) and Sender:IsDescendantOf(playerService) then
+					local canChatWith
+					local Succ,Msg = pcall(function()
+						canChatWith = chatService:CanUsersChatAsync(Sender.UserId,Receiver.UserId)
+					end)
+					if not Succ then
+						addLog(sysTable.debugLogs,'[1] Chat Error: '..tostring(Succ or "nil")..', '..tostring(Msg or "nil"))
+						return false,'!Filter Error: '..tostring(Msg or "nil")
+					else
+						if not canChatWith then
+							return false,Sender.Name..' cannot communicate with '..Receiver.Name
+						end
+					end
+				end
+			end
+
+			local Succ,Result,rawResult,Msg = Filter(Data,Sender,Receiver,3,0.5)
+			if not Succ and Msg then
+				addLog(sysTable.debugLogs,'[2] Chat Error: '..tostring(Succ or "nil")..', '..tostring(Msg or "nil"))
+				return false,'!Filter Error: '..tostring(Msg or "nil")
+			elseif Succ then
+				returningString = Result
+				returningData = rawResult
+			end
+		else
+			return false
+		end
+	end
+
+	return returningString ~= nil,returningString,returningData
+end
+
+function Funcs.Kick(Args)
+	local Player = Args[1]
+	local playerPermissions = returnPermission(Player)
+	if Args[3] then
+		local Reason = sysTable.kickReason
+		if Args[4] then
+			local combinedArgs = ""
+			for a,b in pairs(Args) do
+				if a > 3 then
+					combinedArgs = combinedArgs..b..' '
+				end
+			end
+			if combinedArgs ~= "" then
+				Reason = combinedArgs
+			end
+		end
+		local Victims = returnPlayers(Player,Args[3],Args[2])
+		if not Victims then return "Player(s) not found." end
+		for a,b in next,Victims do
+			local victimPermissions = returnPermission(b)
+			if playerPermissions > victimPermissions then
+				pluginEvent:Fire("Kick Logs",{Player,"Kicked "..b.Name})
+				if Reason ~= sysTable.kickReason then
+					local Cleaned,newData = cleanUserData(Reason,Player,b)
+					if Cleaned and newData then
+						Reason = newData
+					elseif not Cleaned then
+						if newData and newData:lower():match('cannot communicate with') then
+							Reason = sysTable.kickReason..'\nA reason was provided, but your privacy settings prevent you from seeing it.'
+						else
+							Reason = newData or sysTable.kickReason
+						end
+					end
+				end
+
+				b:Kick('Basic Admin\n'..Reason)
+			end
+		end
+	end
+end
+
+function Funcs.Ban(Args)
+	local Player = Args[1]
+	local playerPermissions = returnPermission(Player)
+	local Victims = returnPlayers(Player,Args[3],Args[2])
+	if not Victims then return "Player(s) not found." end
+
+	local Command = Args[2]
+	if Command == "unban" then
+		for a,b in next,sysTable.Permissions.Banned do
+			if string.sub(b:lower(),1,#Args[3]) == Args[3] then
+				sysTable.Permissions.Banned[tostring(a)] = nil
+			end
+		end
+	elseif Command == "ban" then
+		if not Victims then
+			remoteEvent:FireClient(Player,'Hint','Error',(Args[3] or 'nil')..' was not found.')
+			return
+		end
+		for a,b in next,Victims do
+			local victimPermissions = returnPermission(b)
+			if not sysTable.Permissions.Banned[tostring(b.UserId)] and victimPermissions < playerPermissions then
+				sysTable.Permissions.Banned[tostring(b.UserId)] = b.Name
+				pluginEvent:Fire("Ban Logs",{Player,"Banned "..b.Name})
+				b:Kick('Basic Admin\n'..sysTable.banReason)
+			end
+		end
+	end
+end
+
+local function customCommands(Player)
+	local Permissions = returnPermission(Player)
+	local allowedCommands = {}
+	for a,b in next,Commands do
+		if b[4] <= Permissions then
+			if b[3] ~= nil then
+				if b[3] == Funcs.Donor and sysTable.donorPerks and not (b[3] == Funcs.Donor and not sysTable.donorPerks) then
+					table.insert(allowedCommands,b)
+				elseif not (b[3] == Funcs.Donor and not sysTable.donorPerks) then
+					table.insert(allowedCommands,b)
+				end
+			end
+		end
+	end
+	return allowedCommands
+end
+
+local function httpCheck()
+	local Success,Fail = pcall(function()
+		local Huh = httpService:GetAsync('http://google.com')
+	end)
+	if Success and not Fail then
+		return true
+	else
+		return false
+	end
+end
+
+local function checkTrello()
+	if (sysTable.trelloEnabled == true and sysTable.trelloBoard ~= nil and (httpCheck())) then
+		return true
+	else
+		return false
+	end
+end
+
+local alreadyCleaningTable = {}
+
+local function cleanTableData(Table,toPlayer)
+	local newLogTable = {}
+	local senderCanChat = chatService:CanUserChatAsync(toPlayer.UserId)
+
+	local uniqueLoop = httpService:GenerateGUID(false)
+	alreadyCleaningTable[toPlayer] = uniqueLoop
+
+	for _,tableData in next,Table do
+		if alreadyCleaningTable[toPlayer] ~= uniqueLoop or not toPlayer or not toPlayer:IsDescendantOf(playerService) then
+			newLogTable = nil
+			break
+		end
+
+		-- We cannot currently filter properly due to the lack
+		-- of API features available according to the TextService
+		-- FilterStringForAsync functionality, such as filtering
+		-- data for if a sender has left the server, to a receiver
+		-- in the server currently, so we have to use an alternative
+		-- route to still maintain the essential feature of chatlogs
+		-- and logs.
+
+		-- In the future, I will add appropriate filtering functionality
+		-- that is in full compliance with Roblox's filter.
+		if Table == sysTable.chatLogs or Table == sysTable.Logs then
+			tableData.Bypass = true
+		end
+
+		local Inserting
+		if tableData.Sender and tableData.Data then
+			if not tableData.Bypass then
+				local Cleaned,newData = cleanUserData(tableData.Data,toPlayer,toPlayer)
+
+				if Cleaned and newData then
+					Inserting = newData
+				elseif not Cleaned then
+					Inserting = newData or "(Blocked)"
+				end
+			else
+				if not senderCanChat then
+					if tableData.Data:lower():match('(super safechat)') and tableData.Tag then
+						Inserting = tableData.Data
+					else
+						Inserting = "(Blocked)"
+					end
+				else
+					Inserting = tableData.Data
+				end
+			end
+		end
+
+		Inserting = tostring(tableData.Sender)..': '..Inserting
+
+		if Inserting then
+			table.insert(newLogTable,Inserting)
+		end
+	end
+
+	return newLogTable
+end
+
+local pendingPSAs = {}
+
+local function returnPSAMessage(Player,PSA)
+	local Returning = {}
+
+	if pendingPSAs[Player] and pendingPSAs[Player][PSA] and pendingPSAs[Player][PSA].Title then
+		Returning = pendingPSAs[Player][PSA]
+	end
+
+	return Returning.Title or nil,Returning.Info or nil
+end
+
+local function checkForAcknowledgement(Player,PSA)
+	local hasAcknowledged = DataCategory.get(Player.UserId..'_PSA.'..PSA)
+	return hasAcknowledged
+end
+
+local function acknowledgePSA(Player,PSA)
+	local Title,Info = returnPSAMessage(Player,PSA)
+	if Title and Info then
+		pendingPSAs[Player][PSA] = nil
+		remoteEvent:FireClient(Player,'PM',Title,Info,true)
+		pcall(function()
+			DataCategory.set(Player.UserId..'_PSA.'..PSA,true)
+		end)
+	end
+end
+
+function Funcs.Display(Args)
+	local Player = Args[1]
+	local Command = Args[2]
+	if Command == "cmds" then
+		local PSA = returnPSAMessage(Player,'all')
+		remoteEvent:FireClient(Player,'List','Commands',true,true,customCommands(Player),PSA)
+	elseif Command == "changelog" then
+		remoteEvent:FireClient(Player,'PM',"Basic Admin Changelog",sysTable.Changelog,true)
+	elseif Command == "trellobans" then
+		if not checkTrello() then
+			remoteEvent:FireClient(Player,'Hint','Error','Trello is not configured.')
+			return
+		end
+		local Table = {}
+		if sysTable.trelloBanned ~= {} then
+			for a,b in next,sysTable.trelloBanned do
+				table.insert(Table,a..', '..b)
+			end
+		end
+		remoteEvent:FireClient(Player,'List','Trello Bans',true,true,Table)
+	elseif Command == "tools" then
+		local Table = {}
+		for a,b in next,sysTable.toolLocation:GetDescendants() do
+			if (b:IsA('Tool') or b:IsA('HopperBin')) and not playerService:GetPlayerFromCharacter(b.Parent) then
+				table.insert(Table,b.Name)
+			end
+		end
+		remoteEvent:FireClient(Player,'List','Tools in '..tostring(sysTable.toolLocation),false,true,Table)
+	elseif Command == "admins" then
+		local Table = {}
+		local Starting = 1
+		for a,b in next,sysTable.Permissions do
+			if b[1] then
+				for c,d in next,b[2] do
+					if b[1] == 1 then
+						table.insert(Table,'[Mod]: '..d)
+					elseif b[1] == 2 then
+						table.insert(Table,'[Admin]: '..d)
+					elseif b[1] == 3 then
+						table.insert(Table,'[Superadmin]: '..d)
+					elseif b[1] == 4 then
+						if checkDebugger(c) then
+							table.insert(Table,'[Admin Creator]: '..d)
+						else
+							table.insert(Table,'[Game Creator]: '..d)
+						end
+					end
+				end
+			end
+		end
+
+--[[
     ____
     /\  _`\                    __
     \ \ \L\ \     __      ____/\_\    ___
@@ -931,3 +1527,895 @@ local function managePlayer(Player)
 end
 
 -- ... (بقية السكريبت يبقى كما هو)
+		remoteEvent:FireClient(Player,'List','Admins',true,true,Table)
+	elseif Command == "ingameadmins" then
+		local Table = {}
+		for a,b in next,playerService:GetPlayers() do
+			local Perm = returnPermission(b)
+			if Perm > 0 then
+				if Perm == 1 then
+					table.insert(Table,'[Mod]: '..b.Name)
+				elseif Perm == 2 then
+					table.insert(Table,'[Admin]: '..b.Name)
+				elseif Perm == 3 then
+					table.insert(Table,'[Superadmin]: '..b.Name)
+				elseif Perm == 4 then
+					if checkDebugger(b.UserId) then
+						table.insert(Table,'[Admin Creator]: '..b.Name)
+					else
+						table.insert(Table,'[Game Creator]: '..b.Name)
+					end
+				end
+			end
+		end
+		remoteEvent:FireClient(Player,'List','In-game Admins',true,true,Table)
+	elseif Command == "chatlogs" then
+		local newLogTable = cleanTableData(sysTable.chatLogs,Player)
+		if newLogTable then
+			local PSA = returnPSAMessage(Player,'all') or returnPSAMessage(Player,'logs')
+			remoteEvent:FireClient(Player,'List','Chat Logs',true,true,newLogTable,PSA)
+		end
+	elseif Command == "logs" then
+		local newLogTable = cleanTableData(sysTable.Logs,Player)
+		if newLogTable then
+			local PSA = returnPSAMessage(Player,'all') or returnPSAMessage(Player,'logs')
+			remoteEvent:FireClient(Player,'List','Admin Logs',true,true,newLogTable,PSA)
+		end
+	elseif Command == "joinlogs" then
+		remoteEvent:FireClient(Player,'List','Join Logs',true,true,sysTable.joinLogs)
+		--	elseif Command == "pbans" then
+		--		local pbanData = sysTable.dsBanCache
+		--		local Table = {}
+		--		if pbanData then
+		--			for a,b in next,pbanData do
+		--				table.insert(Table,{b[1],b[2],b[3]})
+		--			end
+		--		end
+		--		remoteEvent:FireClient(Player,'List','Permanent Bans',true,true,Table)
+	elseif Command == "shutdownlogs" then
+		local shutdownData = DataCategory.get('Shutdown Logs')
+		local Table = {}
+		if shutdownData then
+			for a,b in next,shutdownData do
+				table.insert(Table,b[1]..', '..b[2])
+			end
+		end
+		remoteEvent:FireClient(Player,'List','Shutdown Logs',false,true,Table)
+	elseif Command == "bans" then
+		local Table = {}
+		for a,b in next,sysTable.Permissions.Banned do
+			table.insert(Table,b..', '..a)
+		end
+		remoteEvent:FireClient(Player,'List','Bans',true,true,Table)
+	elseif Command == "debuglogs" then
+		remoteEvent:FireClient(Player,'List','Debug',true,true,sysTable.debugLogs)
+	end
+end
+
+function Funcs.displayMessage(Args)
+	local Player = Args[1]
+	local Command = Args[2]
+	local combinedArgs = ""
+	if Command ~= "smtest" then
+		if not Args[3] then return end
+		for a,b in pairs(Args) do
+			if a > 2 then
+				combinedArgs = combinedArgs..b..' '
+			end
+		end
+	end
+
+	if Command == "sm" then
+		if combinedArgs ~= "" then
+			for a,b in next,playerService:GetPlayers() do
+				local cleansedData = ""
+				local cannotShow = false
+
+				local Cleaned,newData = cleanUserData(combinedArgs,Player,b)
+				if Cleaned and newData then
+					cleansedData = newData
+				elseif not Cleaned then
+					if newData and newData:lower():match('cannot communicate with') then
+						cannotShow = true
+						remoteEvent:FireClient(b,'Message',sysTable.serverMessage,'Your chat settings prevent you from seeing messages.')
+					else
+						if not newData then
+							remoteEvent:FireClient(Player,'Message',sysTable.serverMessage,'Your chat settings prevent you from sending messages.')
+							return
+						else
+							cleansedData = newData
+						end
+					end
+				end
+
+				if not cannotShow then
+					remoteEvent:FireClient(b,'Message',sysTable.serverMessage,cleansedData)
+				end
+			end
+		end
+	elseif Command == "countdown" then
+		if Args[3] and tonumber(Args[3]) then
+			if not sysTable.countingDown then
+				sysTable.countingDown = true
+				spawn(function()
+					for i=Args[3],0,-1 do
+						if sysTable.countingDown then
+							remoteEvent:FireAllClients('Hint','Countdown',i)
+							wait(1)
+							if i == 1 then
+								sysTable.countingDown = false
+								--								remoteEvent:FireAllClients('Hint','Countdown',"BEGIN!")
+								break
+							end
+						else
+							break
+						end
+					end
+				end)
+			end
+		elseif Args[3] and tostring(Args[3]) and Args[3]:lower() == 'off' then
+			sysTable.countingDown = false
+		end
+	elseif Command == "m" then
+		if combinedArgs ~= "" then
+			for a,b in next,playerService:GetPlayers() do
+				local cleansedData = ""
+				local cannotShow = false
+
+				local Cleaned,newData = cleanUserData(combinedArgs,Player,b)
+				if Cleaned and newData then
+					cleansedData = newData
+				elseif not Cleaned then
+					if newData and newData:lower():match('cannot communicate with') then
+						cannotShow = true
+						remoteEvent:FireClient(b,'Message',sysTable.serverMessage,'Your chat settings prevent you from seeing messages.')
+					else
+						if not newData then
+							remoteEvent:FireClient(Player,'Message',sysTable.serverMessage,'Your chat settings prevent you from sending messages.')
+							return
+						else
+							cleansedData = newData
+						end
+					end
+				end
+
+				if not cannotShow then
+					remoteEvent:FireClient(b,'Message',Player.Name,cleansedData)
+				end
+			end
+		end
+	elseif Command == "h" then
+		if combinedArgs ~= "" then
+			for a,b in next,playerService:GetPlayers() do
+				local cleansedData = ""
+				local cannotShow = false
+
+				local Cleaned,newData = cleanUserData(combinedArgs,Player,b)
+				if Cleaned and newData then
+					cleansedData = newData
+				elseif not Cleaned then
+					if newData and newData:lower():match('cannot communicate with') then
+						cannotShow = true
+						remoteEvent:FireClient(b,'Hint',sysTable.serverMessage,'Your chat settings prevent you from seeing messages.')
+					else
+						if not newData then
+							remoteEvent:FireClient(Player,'Hint',sysTable.serverMessage,'Your chat settings prevent you from sending messages.')
+							return
+						else
+							cleansedData = newData
+						end
+					end
+				end
+
+				if not cannotShow then
+					remoteEvent:FireClient(b,'Hint',Player.Name,cleansedData)
+				end
+			end
+		end
+	elseif Command == "smtest" then
+		remoteEvent:FireAllClients('Message',"Server Message",[[Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ut facilisis massa. Proin ac ex vestibulum turpis bibendum pellentesque vitae ac dolor. Sed a ipsum a neque dictum posuere at auctor odio. Vivamus eleifend, metus eget egestas ornare, tellus ante aliquam ligula, sit amet aliquam lorem orci vitae mi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In aliquam dictum nisi, et vestibulum mauris hendrerit ac. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aliquam non diam dolor. In nec turpis euismod, auctor ante vitae, gravida neque. Integer quis cursus ligula. Maecenas ultricies mi at nisl pretium, eu tristique sem suscipit. Cras nec tempor ante. Cras ut euismod augue. Nunc faucibus leo vulputate sem porta, nec pellentesque nulla ornare. Duis sit amet mauris sed ante hendrerit sodales. Aenean pretium velit tempor ex commodo hendrerit.
+
+Curabitur tincidunt ac elit quis euismod. Curabitur lobortis, mi vel dapibus pretium, quam mauris scelerisque arcu, et ultrices arcu lectus vel urna. Nunc aliquet metus augue, nec congue sem porta sit amet. Sed maximus, nunc quis sollicitudin tincidunt, felis neque fringilla neque, vel auctor risus metus vitae magna. Vivamus purus dolor, blandit id sem vel, ultricies congue lacus. Integer non congue leo. Donec a magna a metus feugiat scelerisque dapibus nec tortor. Mauris suscipit eu neque vel imperdiet. Duis leo arcu, malesuada quis erat sed, luctus tincidunt mauris. Integer vel diam sed nibh bibendum porta ut non risus. Suspendisse vulputate posuere auctor. Aliquam et velit quis justo sollicitudin cursus id in dui. Vestibulum tincidunt, purus non pharetra rhoncus, lacus ligula volutpat mi, quis rhoncus dolor arcu id urna. Nulla facilisi. Sed sodales dignissim eros ac interdum. Integer posuere viverra nisl sit amet suscipit.
+
+In sem sem, elementum non sodales ut, gravida a diam. Pellentesque eget sem ullamcorper velit convallis congue sed laoreet leo. Fusce nibh dolor, dictum in odio quis, gravida aliquet purus. Sed efficitur lacus justo, a eleifend est dignissim sed. Nunc egestas in est nec vulputate. Phasellus vel lacinia ante, eu molestie eros. Suspendisse potenti. Sed et volutpat arcu. Cras eu consequat risus. Nam efficitur sed ligula ut lacinia. Aenean vehicula venenatis nibh, ac commodo est dictum sit amet. Curabitur aliquet tempor purus id scelerisque.
+
+Cras eget elementum mi. Aenean sollicitudin id lectus eget tincidunt. Curabitur sit amet massa et tortor lobortis fermentum. Suspendisse vel lacinia turpis. Suspendisse risus sapien, finibus at risus sed, interdum volutpat urna. Vivamus vestibulum orci nec nibh ultrices, at volutpat diam dignissim. Praesent vel erat aliquet, sollicitudin massa sed, cursus massa. Sed sed purus quis sem feugiat condimentum consectetur vitae lacus. Suspendisse vel auctor erat, efficitur pellentesque orci.
+
+Vivamus risus nisl, gravida ac consequat vel, semper quis mauris. Vivamus feugiat purus nibh, vitae ultricies sapien feugiat nec. Aliquam dapibus nec felis vel rhoncus. Morbi id tellus at nisi placerat luctus vel in risus. Curabitur a nisi vel velit semper porta. Curabitur consectetur dignissim nunc, et tempor ipsum feugiat ut. Aenean sem nibh, iaculis vel interdum eget, volutpat nec lorem.]])
+	end
+end
+
+local function unadminPlayer(Player,Victim)
+	local playerPermission = returnPermission(Player)
+	local Permission = returnPermission(Victim)
+	for c,d in next,sysTable.Permissions do
+		if playerPermission > Permission and d[2] and d[2][tostring(Victim.UserId)] then
+			remoteEvent:FireClient(Victim,'Admin Update',nil,nil,nil,customCommands(Player),0)
+			d[2][tostring(Victim.UserId)] = nil
+		end
+	end
+end
+
+function Funcs.Admin(Args)
+	local Player = Args[1]
+	local Command = Args[2]
+	local playerPermission = returnPermission(Player)
+	local Victims = returnPlayers(Player,Args[3],Args[2])
+	if not Victims then return "Player(s) not found." end
+	if Command == "superadmin" then
+		for a,b in next,Victims do
+			if b ~= Player then
+				local Permission = returnPermission(b)
+				if not sysTable.Permissions.superAdmins[2][tostring(b.UserId)] and (playerPermission > Permission) then
+					if Permission ~= 0 then
+						unadminPlayer(Player,b)
+					end
+					sysTable.Permissions.superAdmins[2][tostring(b.UserId)] = b.Name
+					remoteEvent:FireClient(b,'Admin Update',"Super Admin",'Click for Commands',{'Cmds'},customCommands(Player),3)
+				end
+			end
+		end
+	elseif Command == "admin" then
+		for a,b in next,Victims do
+			if b ~= Player then
+				local Permission = returnPermission(b)
+				if not sysTable.Permissions.Admins[2][tostring(b.UserId)] and (playerPermission > Permission) then
+					if Permission ~= 0 then
+						unadminPlayer(Player,b)
+					end
+					sysTable.Permissions.Admins[2][tostring(b.UserId)] = b.Name
+					remoteEvent:FireClient(b,'Admin Update',"Administrator",'Click for Commands',{'Cmds'},customCommands(Player),2)
+				end
+			end
+		end
+	elseif Command == "mod" then
+		for a,b in next,Victims do
+			if b ~= Player then
+				local Permission = returnPermission(b)
+				if not sysTable.Permissions.Mods[2][tostring(b.UserId)] and (playerPermission > Permission) then
+					if Permission ~= 0 then
+						unadminPlayer(Player,b)
+					end
+					sysTable.Permissions.Mods[2][tostring(b.UserId)] = b.Name
+					remoteEvent:FireClient(b,'Admin Update',"Moderator",'Click for Commands',{'Cmds'},customCommands(Player),1)
+				end
+			end
+		end
+	elseif Command == "unadmin" then
+		for a,b in next,Victims do
+			local Permission = returnPermission(b)
+			for c,d in next,sysTable.Permissions do
+				if playerPermission > Permission and d[2] and d[2][tostring(b.UserId)] then
+					remoteEvent:FireClient(b,'Admin Update',nil,nil,nil,customCommands(Player),0)
+					d[2][tostring(b.UserId)] = nil
+				end
+			end
+		end
+	end
+end
+
+function Funcs.addLog(Args)
+	local Player = Args[1]
+	if Args[3] then
+		local combinedArgs = ""
+		for a,b in pairs(Args) do
+			if a > 2 then
+				combinedArgs = combinedArgs..b..' '
+			end
+		end
+		if combinedArgs ~= "" then
+			local cleansedData = ""
+			local Cleaned,newData = cleanUserData(combinedArgs,Player)
+			if Cleaned and newData then
+				cleansedData = newData
+			elseif not Cleaned then
+				cleansedData = newData or "An error occurred."
+			end
+
+			addLog(sysTable.debugLogs,'[A] '..cleansedData)
+		end
+	end
+end
+
+local function generateID()
+	return httpService:GenerateGUID(false)
+end
+
+function Funcs.PM(Args)
+	local Player = Args[1]
+	if Args[3] and Args[4] then
+		local combinedArgs
+		for a,b in pairs(Args) do
+			if a > 3 then
+				if not combinedArgs then
+					combinedArgs = b
+				else
+					combinedArgs = combinedArgs..' '..b
+				end
+			end
+		end
+		local Victims = returnPlayers(Player,Args[3],Args[2])
+		if not Victims then return "Player(s) not found." end
+		for a,b in next,Victims do
+			local Sending = true
+			local cleansedData = ""
+			local Cleaned,newData = cleanUserData(combinedArgs,Player,b)
+
+			if Cleaned and newData then
+				cleansedData = newData
+			elseif not Cleaned then
+				if newData and newData:lower():match('cannot communicate with') then
+					Sending = false
+					remoteEvent:FireClient(Player,'Hint','Error','You cannot communicate with '..b.Name..'.')
+				else
+					if not newData then
+						remoteEvent:FireClient(Player,'Hint',sysTable.serverMessage,'Your chat settings prevent you from sending messages.')
+						return
+					else
+						cleansedData = newData
+					end
+				end
+			end
+
+			if Sending then
+				local ID = generateID()
+				sysTable.outboundMessages[ID] = b
+				remoteEvent:FireClient(b,'PM',Player.Name,cleansedData,nil,ID)
+			end
+		end
+	else
+		return "Missing arguments."
+	end
+end
+
+function Funcs.Shutdown(Args)
+	local Player = Args[1]
+	if not sysTable.shuttingDown then
+		sysTable.shuttingDown = {}
+		sysTable.shuttingDown.Name = tostring(Player)
+		sysTable.shuttingDown.UserId = tostring(Player.UserId)
+
+		pluginEvent:Fire("Shutdown Logs",{Player,"Shutdown the server with "..tostring(#playerService:GetPlayers())..' player(s).'})
+		remoteEvent:FireClient(Player,'Hint','Server','Shutting down..')
+		remoteEvent:FireAllClients('Message',sysTable.serverMessage,sysTable.shutdownReason)
+
+		wait(1)
+
+		for a,b in next,playerService:GetPlayers() do
+			b:Kick('Basic Admin\n'..sysTable.shutdownReason)
+		end
+	end
+end
+
+function Funcs.lockSever(Args)
+	local Player = Args[1]
+	local Cmd = Args[2]
+	if Cmd == "slock" then
+		if not sysTable.serverLocked then
+			sysTable.serverLocked = true
+			remoteEvent:FireClient(Player,'Hint','Success','The server has been locked.')
+		else
+			remoteEvent:FireClient(Player,'Hint','Error','The server was already locked.')
+		end
+	elseif Cmd == "unslock" then
+		if sysTable.serverLocked then
+			sysTable.serverLocked = false
+			remoteEvent:FireClient(Player,'Hint','Success','The server has been unlocked.')
+		else
+			remoteEvent:FireClient(Player,'Hint','Error','The server was already unlocked.')
+		end
+	end
+end
+
+local function teleportCharacter(Character, ToCFrame, FromCFrame)
+	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+	local RootPart = Character:FindFirstChild("HumanoidRootPart")
+	local SeatWeld = Humanoid ~= nil and Humanoid.SeatPart ~= nil and Humanoid.SeatPart:FindFirstChild("SeatWeld")
+	if Humanoid ~= nil and RootPart ~= nil then
+		if SeatWeld then
+			SeatWeld:Destroy()
+			Humanoid.Sit = false
+			local NewSeat = Instance.new("Seat")
+			NewSeat.Name = "BATpSeat"
+			NewSeat.Anchored = true
+			NewSeat.CanCollide = false
+			NewSeat.Disabled = true
+			NewSeat.Transparency = 1
+			NewSeat.CFrame = CFrame.new(ToCFrame.Position, FromCFrame.Position)
+			NewSeat.Parent = Character
+			local C1
+			C1 = NewSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+				C1:Disconnect()
+				spawn(function()
+					local C2
+					C2 = NewSeat:GetPropertyChangedSignal("Parent"):Connect(function()
+						C2:Disconnect()
+						spawn(function()
+							RootPart.CFrame = CFrame.new(ToCFrame.Position, FromCFrame.Position)
+							Humanoid.Sit = false
+							Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+						end)
+					end)
+					NewSeat:Destroy()
+				end)
+			end)
+			NewSeat:Sit(Humanoid)
+		else
+			if Humanoid.Sit == true then
+				Humanoid.Sit = false
+			end
+			RootPart.CFrame = CFrame.new(ToCFrame.Position, FromCFrame.Position)
+		end
+	end
+end
+
+function Funcs.Teleport(Args)
+	local Player = Args[1]
+	if Args[2] == 'tp' then
+		if not Args[4] then return "Missing arguments." end
+		local tpTarget = returnPlayers(Player,Args[4],Args[2])
+		tpTarget = (Args[4] ~= nil and tpTarget ~= nil and tpTarget[1]) or (Args[4] == nil and Player) or nil
+		if tpTarget == nil then 
+			return "Player not found."
+		end		
+		local playersToTp = returnPlayers(Player,Args[3],Args[2])
+		if playersToTp == nil then 
+			return "Player(s) not found."
+		end
+		local tpTargetRootPart = tpTarget.Character.Parent ~= nil and tpTarget.Character:FindFirstChild("HumanoidRootPart")
+
+		local RingCount = 1
+		local CurrentIndex = 1
+		local InitialIterations = 5
+		local Remaining = #playersToTp
+
+		while CurrentIndex <= #playersToTp do
+			local ItemsPerRingCount = 1
+			local Iterations = math.min(InitialIterations, Remaining)
+			for i = CurrentIndex, CurrentIndex + Iterations - 1 do
+				local otherPlayer = playersToTp[i]
+
+				local x = math.cos((ItemsPerRingCount/Iterations - (0.5/Iterations)) * math.pi) * (RingCount*5)
+				local z = math.sin((ItemsPerRingCount/Iterations - (0.5/Iterations)) * math.pi) * (RingCount*5)
+				local NewCFrame = tpTargetRootPart.CFrame:ToWorldSpace(CFrame.new(x, 0, z):Inverse()) * CFrame.Angles(0, 0, math.rad(180))
+				teleportCharacter(otherPlayer.Character, NewCFrame, tpTargetRootPart.CFrame)
+
+				ItemsPerRingCount += 1
+			end
+			CurrentIndex = CurrentIndex + Iterations
+			Remaining = Remaining - Iterations
+			InitialIterations = InitialIterations + 1
+			RingCount += 1
+		end
+	elseif Args[2] == 'to' then
+		local playerRoot = Player.Character:FindFirstChild('HumanoidRootPart')		
+
+		local tpTarget = returnPlayers(Player,Args[3],Args[2])
+		tpTarget = (Args[3] ~= nil and tpTarget ~= nil and tpTarget[1]) or (Args[3] == nil and Player) or nil
+		if tpTarget == nil then 
+			return "Player not found."
+		end
+
+		local tpTargetRootPart = tpTarget.Character.Parent ~= nil and tpTarget.Character:FindFirstChild("HumanoidRootPart")
+
+		local NewCFrame = tpTargetRootPart.CFrame * CFrame.new(0, 0, -5) * CFrame.Angles(0, 0, math.rad(180))
+		teleportCharacter(Player.Character, NewCFrame, tpTargetRootPart.CFrame)
+	elseif Args[2] == 'bring' then
+		local playerRoot = Player.Character:FindFirstChild('HumanoidRootPart')
+		local playersToBring = (Args[3] ~= nil and returnPlayers(Player,Args[3],Args[2])) or (Args[3] == nil and {Player}) or nil
+		if playersToBring == nil then 
+			return "Player(s) not found."
+		end
+
+		local RingCount = 1
+		local CurrentIndex = 1
+		local InitialIterations = 5
+		local Remaining = #playersToBring
+
+		while CurrentIndex <= #playersToBring do
+			local ItemsPerRingCount = 1
+			local Iterations = math.min(InitialIterations, Remaining)
+			for i = CurrentIndex, CurrentIndex + Iterations - 1 do
+				local otherPlayer = playersToBring[i]
+
+				local OtherPlayerHumanoid = otherPlayer.Character:FindFirstChildOfClass("Humanoid")
+				local OtherPlayerRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+				local SeatWeld = OtherPlayerHumanoid ~= nil and OtherPlayerHumanoid.SeatPart ~= nil and OtherPlayerHumanoid.SeatPart:FindFirstChild("SeatWeld")
+
+				local x = math.cos((ItemsPerRingCount/Iterations - (0.5/Iterations)) * math.pi) * (RingCount*5)
+				local z = math.sin((ItemsPerRingCount/Iterations - (0.5/Iterations)) * math.pi) * (RingCount*5)
+				local NewCFrame = playerRoot.CFrame:ToWorldSpace(CFrame.new(x, 0, z):Inverse()) * CFrame.Angles(0, 0, math.rad(180))
+				teleportCharacter(otherPlayer.Character, NewCFrame, playerRoot.CFrame)
+
+				ItemsPerRingCount += 1
+			end
+			CurrentIndex = CurrentIndex + Iterations
+			Remaining = Remaining - Iterations
+			InitialIterations = InitialIterations + 1
+			RingCount += 1
+		end
+	end
+end
+
+function Funcs.Team(Args)
+	local Player = Args[1]
+	local Players = returnPlayers(Player,Args[3],Args[2]) if not Players then return "Player(s) not found." end
+	if not Args[4] then return "Missing arguments." end
+	for a,b in next,Players do
+		for c,d in next,Teams:GetChildren() do
+			if d.Name:lower():find(Args[4]:lower()) == 1 then
+				b.TeamColor = d.TeamColor
+			end
+		end
+	end
+end
+
+function Funcs.Info(Args)
+	local Player = Args[1]
+	local Players = returnPlayers(Player,Args[3],Args[2])
+	if not Players then
+		return "Player(s) not found."
+	end
+
+	for a,b in pairs(Players) do
+		local InfoTable = {}
+		table.insert(InfoTable,"Username: "..b.Name)
+		table.insert(InfoTable,"UserId: "..b.UserId)
+		table.insert(InfoTable,"AccountAge: "..b.AccountAge)
+		local JoinDate = os.date("*t",(os.time()-((b.AccountAge)*24*60*60)))
+		table.insert(InfoTable,"Join Date: "..JoinDate.month.."/"..JoinDate.day.."/"..JoinDate.year)
+		table.insert(InfoTable,"Membership: "..b.MembershipType.Name)
+		--local TextFilterResult
+		--local Succ,Msg = pcall(function()
+		--	TextFilterResult = textService:FilterStringAsync("C7RN",b.UserId)
+		--end)
+		--if TextFilterResult ~= nil and Succ == true then
+		--	local FilteredString
+		--	local Succ,Msg = pcall(function()
+		--		FilteredString = TextFilterResult:GetChatForUserAsync(b.UserId)
+		--	end)
+		--	if FilteredString ~= nil and Succ == true then
+		--		local SafeChat = (FilteredString == "C7RN" and "false") or "true"
+		--		table.insert(InfoTable,"SafeChat: "..SafeChat)
+		--	end
+		--end
+		local policyInfo
+		pcall(function()
+			policyInfo = policyService:GetPolicyInfoForPlayerAsync(b)
+		end)
+		if policyInfo ~= nil then
+			if policyInfo.AllowedExternalLinkReferences == {} then
+				table.insert(InfoTable,"SafeChat: true")
+			else
+				table.insert(InfoTable,"SafeChat: false")
+			end
+			for c,d in next,policyInfo do
+				if type(d) == "boolean" then
+					table.insert(InfoTable,c..": "..tostring(d))
+				end
+			end
+		else
+			table.insert(InfoTable,"SafeChat: Error checking")
+		end
+		local Donor = (sysTable.donorCache[tostring(b.UserId)] ~= nil and "true") or "false"
+		table.insert(InfoTable,"Basic Admin Donor: "..Donor)
+		local Permission = returnPermission(b)
+		if Permission == 1 then
+			table.insert(InfoTable,"Admin Level: Moderator")
+		elseif Permission == 2 then
+			table.insert(InfoTable,"Admin Level: Admin")
+		elseif Permission == 3 then
+			table.insert(InfoTable,"Admin Level: Super Admin")
+		elseif Permission >= 4 then
+			if checkDebugger(b.UserId) then
+				table.insert(InfoTable,"Admin Level: Admin Creator")
+			else
+				table.insert(InfoTable,"Admin Level: Game Owner")
+			end
+		end
+		if #sysTable.groupConfig > 0 and sysTable.groupConfig[1]["Group ID"] > 0 then
+			local groupInfo
+			local Succ,Msg = pcall(function()
+				groupInfo = groupService:GetGroupsAsync(b.UserId)
+			end)
+			if groupInfo ~= nil then
+				local AlreadyAdded = {}
+				for a,b in next,sysTable.groupConfig do
+					for c,d in next,groupInfo do
+						if (tonumber(d.Id) == tonumber(b['Group ID'])) and not AlreadyAdded[d.Id] then
+							AlreadyAdded[d.Id] = true
+							table.insert(InfoTable,d.Name..': '..d.Role)
+						end
+					end
+				end
+			else
+				table.insert(InfoTable,"Error loading groups: "..tostring((Msg ~= nil and Msg) or "???"))
+			end
+		end
+		remoteEvent:FireClient(Player,'List','Info',false,true,InfoTable)
+	end
+end
+
+local function checkAsset(Id,Type)
+	if tonumber(Id) then
+		local Asset
+		local success,message = pcall(function()
+			Asset = Market:GetProductInfo(tonumber(Id))
+		end)
+		if success then
+			if Asset.AssetTypeId == Type then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function Funcs.Gear(Args)
+	local Player = Args[1]
+	local Players = returnPlayers(Player,Args[3],Args[2]) if not Players then return "Player(s) not found." end
+	if not Args[4] then return "Missing arguments." end
+	for a,b in pairs(Players) do
+		if checkAsset(Args[4],19) then
+			local insertedItem = insertService:LoadAsset(Args[4]):GetChildren()[1] if not insertedItem then return end
+			insertedItem.Parent = b.Backpack
+		end
+	end
+end
+
+local bansLoaded,trelloDown = false,false
+
+function Funcs.debugStats(Args)
+	local Player = Args[1]
+	local tempTable = {
+		"HttpEnabled: "..tostring(httpCheck()),
+		"Trello Down: "..tostring(trelloDown),
+		"Trello Enabled: "..tostring(sysTable.trelloEnabled),
+		"Trello Board: "..tostring(sysTable.trelloBoard),
+		"Ban Len: "..string.len(tostring(httpService:JSONEncode(DataCategory.get("Bans") or {}))),
+		"Donor Len: "..string.len(tostring(httpService:JSONEncode(DataCategory.get("Cape Data") or {}))),
+		"DataStore: "..tostring(sysTable.dataCategory),
+	}
+	remoteEvent:FireClient(Player,'List','Debug Stats',false,true,tempTable)
+end
+
+function Funcs.Hat(Args)
+	local Player = Args[1]
+	local Players = returnPlayers(Player,Args[3],Args[2]) if not Players then return "Player(s) not found." end
+	if not Args[4] then return "Missing arguments." end
+	for a,b in pairs(Players) do
+		if checkAsset(Args[4],8) or checkAsset(Args[4],41) or checkAsset(Args[4],42) or checkAsset(Args[4],43) or checkAsset(Args[4],44) or checkAsset(Args[4],45) or checkAsset(Args[4], 46) then
+			local insertedItem = insertService:LoadAsset(Args[4]):GetChildren()[1] if not insertedItem then return end
+			if insertedItem:IsA('Accoutrement') then
+				for c,d in pairs(insertedItem:GetDescendants()) do
+					if d:IsA('Script') then
+						d:Destroy()
+					end
+				end
+				insertedItem.Parent = b.Character
+			else
+				insertedItem:Destroy()
+			end
+		end
+	end
+end
+
+function Funcs.Donor(Args)
+	local Player = Args[1]
+	if sysTable.donorPerks then
+		if sysTable.donorCache[tostring(Player.UserId)] then
+			remoteEvent:FireClient(Player,'Donor')
+		else
+			Market:PromptPurchase(Player, sysTable.donorID)
+		end
+	end
+end
+
+local function banId(playerId,playerName,Reason)
+	-- if checkDebugger(playerId) then return end
+
+	for _,Player in next,playerService:GetPlayers() do
+		if tostring(Player.UserId) == tostring(playerId) then
+			Player:Kick('Basic Admin\n'..sysTable.exploitMessage)
+		end
+	end
+
+	local Succ,Msg = pcall(function()
+		local pBans = DataCategory.update('Bans',function(Previous)
+			local toReturn
+			if Previous then
+				toReturn = unpack({Previous})
+			else
+				toReturn = {}
+			end
+			if toReturn ~= {} then
+				for a,b in next,toReturn do
+					if tonumber(b[1]) == tonumber(playerId) then
+						table.remove(toReturn,a)
+						return
+					end
+				end
+			end
+			table.insert(toReturn,{playerId,playerName,Reason})
+			return toReturn
+		end)
+	end)
+
+	pluginEvent:Fire("Exploit Logs",{playerId})
+	addLog(sysTable.debugLogs,'[Exploiter] '..playerId..', '..playerName)
+end
+
+local function checkTable(Table,Data)
+	for a,b in next,Table do
+		if tostring(b[1]) == tostring(Data) then
+			return true
+		end
+	end
+	return
+end
+
+function Funcs.permBan(Args)
+	local Player = Args[1]
+	local Cmd = Args[2]
+	local Players = returnPlayers(Player,Args[3],Args[2])
+	if Cmd == "pban" or Cmd == "pbanid" then
+		local Succ,Msg = pcall(function()
+			local victimTable = {}
+			local victimName,victimId
+			local givenReason
+			if Args[4] then
+				local combinedArgs = ""
+				for a,b in pairs(Args) do
+					if a > 3 then
+						combinedArgs = combinedArgs..b..' '
+					end
+				end
+				if combinedArgs ~= "" then
+					givenReason = combinedArgs
+				end
+			end
+
+			if not Players then
+				local Succ,Msg = pcall(function()
+					if Cmd == "pban" then
+						victimId = tonumber(playerService:GetUserIdFromNameAsync(Args[3]))
+						victimName = tostring(playerService:GetNameFromUserIdAsync(victimId))
+					else
+						victimId = tonumber(Args[3])
+						victimName = tostring(playerService:GetNameFromUserIdAsync(Args[3]))
+					end
+				end)
+				if Succ and not Msg then
+					if not DataCategory.get(tostring(victimId)..'_Banned') then
+						if returnPerms_ID(victimId) >= returnPermission(Player) then
+							return
+						else
+							table.insert(victimTable,{victimId,victimName})
+							local dateTable = {timeAndDate.Date()}
+							local dateString = dateTable[2]..'/'..dateTable[3]..'/'..string.sub(dateTable[1],3)
+							local reasonString = ''
+
+							if givenReason then
+								local Cleaned,newData = cleanUserData(givenReason,Player,false)
+								if Cleaned and newData then
+									givenReason = newData
+								elseif not Cleaned then
+									if newData and newData:lower():match('cannot communicate with') then
+										givenReason = 'A reason was provided, but your privacy settings prevent you from seeing it.'
+									else
+										if not newData then
+											remoteEvent:FireClient(Player,'Message',sysTable.serverMessage,'Your chat settings prevent you from communicating in any way, so a reason will not be provided.')
+											givenReason = nil
+										else
+											givenReason = newData
+										end
+									end
+								end
+
+								if givenReason ~= nil then
+									reasonString = ', Reason: '..givenReason
+								end
+							end
+
+							local Succ,Msg = pcall(function()
+								DataCategory.set(tostring(victimId)..'_Banned',{Victim = victimName,Banner = Player.Name,Date = dateString, Reason = givenReason})
+							end)
+
+							if not Succ and Msg then
+								remoteEvent:FireClient(Player,'Message','Error','An error occurred while trying to ban that user.')
+							end
+
+							for a,b in next,playerService:GetPlayers() do
+								if tostring(b.UserId) == tostring(victimId) then
+									b:Kick('Basic Admin\n'..sysTable.banReason..'\nPermanently'..reasonString)
+								end
+							end
+						end
+					end
+				else
+					remoteEvent:FireClient(Player,'Message','Error','An error occurred while trying to "'..Cmd..'"'..'\n'..Msg)
+					return
+				end
+			else
+				for a,b in next,Players do
+					if returnPerms_ID(b.UserId) < returnPermission(Player) then
+						table.insert(victimTable,{b.UserId,b.Name})
+						local dateTable = {timeAndDate.Date()}
+						local dateString = dateTable[2]..'/'..dateTable[3]..'/'..string.sub(dateTable[1],3)
+						local reasonString = ''
+
+						if givenReason then
+							local Cleaned,newData = cleanUserData(givenReason,Player,false)
+							if Cleaned and newData then
+								givenReason = newData
+							elseif not Cleaned then
+								if newData and newData:lower():match('cannot communicate with') then
+									givenReason = 'A reason was provided, but your privacy settings prevent you from seeing it.'
+								else
+									if not newData then
+										remoteEvent:FireClient(Player,'Message',sysTable.serverMessage,'Your chat settings prevent you from communicating in any way, so a reason will not be provided.')
+										givenReason = nil
+									else
+										givenReason = newData
+									end
+								end
+							end
+
+							if givenReason ~= nil then
+								reasonString = ', Reason: '..givenReason
+							end
+						end
+
+						local Succ,Msg = pcall(function()
+							DataCategory.set(tostring(b.UserId)..'_Banned',{Victim = b.Name,Banner = Player.Name,Date = dateString,Reason = givenReason})
+						end)
+
+						if not Succ and Msg then
+							remoteEvent:FireClient(Player,'Message','Error','An error occurred while trying to ban that user.')
+						end
+
+						b:Kick('Basic Admin\n'..sysTable.banReason..'\nPermanently'..reasonString)
+					end
+				end
+			end
+
+			if #victimTable > 0 then
+				local toSend
+				for a,b in next,victimTable do
+					if not toSend then
+						toSend = b[1]..', '..b[2]
+					else
+						toSend = toSend..' | '..b[1]..', '..b[2]
+					end
+				end
+				remoteEvent:FireClient(Player,'Hint',"Permanently Banned",toSend)
+			else
+				remoteEvent:FireClient(Player,'Hint',"Error","User already banned, or an unexpected error occurred.")
+			end
+		end)
+		if Msg then
+			addLog(sysTable.debugLogs,'Funcs.permBan, "pban", Message: '..Msg or "Err")
+		end
+	elseif Cmd == "unpban" or Cmd == "unpbanid" then
+		local Succ,Msg = pcall(function()
+			local victimId,victimName,Removed
+			local Succ,Msg = pcall(function()
+				if Cmd == "unpban" then
+					victimId = tonumber(playerService:GetUserIdFromNameAsync(Args[3]))
+					victimName = tostring(playerService:GetNameFromUserIdAsync(victimId))
+				else
+					victimId = tonumber(Args[3])
+					victimName = tostring(playerService:GetNameFromUserIdAsync(Args[3]))
+				end
+			end)
+			if Succ and not Msg then
+				local bannedStatus
+				local Succ,Msg = pcall(function()
+					bannedStatus = DataCategory.get(tostring(victimId)..'_Banned')
+				end)
+				if Succ and bannedStatus then
+					local Succ,Msg = pcall(function()
+						DataCategory.remove(tostring(victimId)..'_Banned')
+					end)
+					if Succ then
+	
