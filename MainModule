@@ -1,224 +1,370 @@
--- Script لواجهة الأدمن
 local Player = game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
--- إنشاء الواجهة الرئيسية
-local ScreenGui = Instance.new("ScreenGui")
+-- إعدادات التصميم المخصصة لـ DynaFlip
+local GUI_SETTINGS = {
+    MainColor = Color3.fromRGB(28, 28, 28),
+    HeaderColor = Color3.fromRGB(22, 22, 22),
+    AccentColor = Color3.fromRGB(0, 180, 255),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    ButtonColor = Color3.fromRGB(40, 40, 40),
+    CornerRadius = UDim.new(0, 10),
+    ButtonHeight = 38,
+    Font = Enum.Font.Gotham,
+    TitleFont = Enum.Font.GothamBold
+}
+
+-- إنشاء واجهة DynaFlip الرئيسية
+local DynaFlipGUI = Instance.new("ScreenGui")
+DynaFlipGUI.Name = "DynaFlipGUI"
+DynaFlipGUI.Parent = CoreGui
+DynaFlipGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
 local MainFrame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local CloseButton = Instance.new("TextButton")
-local ScrollingFrame = Instance.new("ScrollingFrame")
-
-ScreenGui.Name = "AdminGUI"
-ScreenGui.Parent = CoreGui
-
 MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
-MainFrame.Size = UDim2.new(0, 300, 0, 350)
-MainFrame.Active = true
-MainFrame.Draggable = true
+MainFrame.Parent = DynaFlipGUI
+MainFrame.BackgroundColor3 = GUI_SETTINGS.MainColor
+MainFrame.Position = UDim2.new(0.35, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 360, 0, 480)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 
+-- إضافة تأثير الزوايا المستديرة
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = GUI_SETTINGS.CornerRadius
+UICorner.Parent = MainFrame
+
+-- رأس الواجهة مع تأثيرات مميزة
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Parent = MainFrame
+Header.BackgroundColor3 = GUI_SETTINGS.HeaderColor
+Header.Size = UDim2.new(1, 0, 0, 45)
+Header.ZIndex = 2
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, GUI_SETTINGS.CornerRadius.Offset)
+HeaderCorner.Parent = Header
+
+local Title = Instance.new("TextLabel")
 Title.Name = "Title"
-Title.Parent = MainFrame
-Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "أدمن الجيم (Admin GUI)"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 18
+Title.Parent = Header
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0.05, 0, 0, 0)
+Title.Size = UDim2.new(0.8, 0, 1, 0)
+Title.Font = GUI_SETTINGS.TitleFont
+Title.Text = "DynaFlip"
+Title.TextColor3 = GUI_SETTINGS.AccentColor
+Title.TextSize = 20
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
+-- زر إغلاق متحرك
+local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
-CloseButton.Parent = Title
-CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-CloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+CloseButton.Parent = Header
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+CloseButton.Position = UDim2.new(0.85, 0, 0.15, 0)
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.Text = "X"
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 18
-CloseButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+CloseButton.Font = GUI_SETTINGS.TitleFont
+CloseButton.Text = "×"
+CloseButton.TextColor3 = GUI_SETTINGS.TextColor
+CloseButton.TextSize = 24
+CloseButton.ZIndex = 3
 
-ScrollingFrame.Parent = MainFrame
-ScrollingFrame.Position = UDim2.new(0, 0, 0, 30)
-ScrollingFrame.Size = UDim2.new(1, 0, 1, -30)
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
-ScrollingFrame.ScrollBarThickness = 5
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(1, 0)
+CloseCorner.Parent = CloseButton
 
--- وظيفة إنشاء أزرار الأوامر
-local function CreateButton(Name, Position)
+-- قائمة الأوامر مع تمرير سلس
+local CommandsFrame = Instance.new("ScrollingFrame")
+CommandsFrame.Name = "CommandsFrame"
+CommandsFrame.Parent = MainFrame
+CommandsFrame.BackgroundTransparency = 1
+CommandsFrame.Position = UDim2.new(0, 0, 0, 50)
+CommandsFrame.Size = UDim2.new(1, 0, 1, -50)
+CommandsFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
+CommandsFrame.ScrollBarThickness = 6
+CommandsFrame.ScrollBarImageColor3 = GUI_SETTINGS.AccentColor
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = CommandsFrame
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- وظيفة إنشاء أزرار بأسلوب DynaFlip
+local function CreateDynaButton(ButtonName)
     local Button = Instance.new("TextButton")
+    Button.Name = ButtonName
+    Button.Parent = CommandsFrame
+    Button.BackgroundColor3 = GUI_SETTINGS.ButtonColor
+    Button.Size = UDim2.new(0.92, 0, 0, GUI_SETTINGS.ButtonHeight)
+    Button.Font = GUI_SETTINGS.Font
+    Button.Text = ButtonName
+    Button.TextColor3 = GUI_SETTINGS.TextColor
+    Button.TextSize = 14
+    Button.AutoButtonColor = false
     
-    Button.Name = Name
-    Button.Parent = ScrollingFrame
-    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    Button.Position = Position
-    Button.Size = UDim2.new(0.9, 0, 0, 40)
-    Button.Font = Enum.Font.SourceSansBold
-    Button.Text = Name
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextSize = 16
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = GUI_SETTINGS.CornerRadius
+    ButtonCorner.Parent = Button
+    
+    -- تأثيرات hover للزر
+    local ButtonStroke = Instance.new("UIStroke")
+    ButtonStroke.Parent = Button
+    ButtonStroke.Color = GUI_SETTINGS.AccentColor
+    ButtonStroke.Thickness = 0
+    ButtonStroke.Transparency = 0.8
+    
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(ButtonStroke, TweenInfo.new(0.15), {Thickness = 1, Transparency = 0}):Play()
+        TweenService:Create(Button, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}):Play()
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(ButtonStroke, TweenInfo.new(0.15), {Thickness = 0, Transparency = 0.8}):Play()
+        TweenService:Create(Button, TweenInfo.new(0.15), {BackgroundColor3 = GUI_SETTINGS.ButtonColor}):Play()
+    end)
     
     return Button
 end
 
 -- إنشاء أزرار الأوامر
-local BanButton = CreateButton("Ban", UDim2.new(0.05, 0, 0, 10))
-local KickButton = CreateButton("Kick", UDim2.new(0.05, 0, 0, 60))
-local F3XButton = CreateButton("F3X", UDim2.new(0.05, 0, 0, 110))
-local BtoolsButton = CreateButton("Btools", UDim2.new(0.05, 0, 0, 160))
-local FlyButton = CreateButton("Fly", UDim2.new(0.05, 0, 0, 210))
-local NoclipButton = CreateButton("Noclip", UDim2.new(0.05, 0, 0, 260))
-local KillAllButton = CreateButton("Kill All", UDim2.new(0.05, 0, 0, 310))
+local PlayerCommands = {
+    "Ban Player",
+    "Ban All",
+    "Kick Player", 
+    "Kick All",
+    "Teleport To Player",
+    "Bring Player"
+}
 
--- وظيفة لفتح قائمة اللاعبين
-local function OpenPlayerList()
-    local PlayerListFrame = Instance.new("Frame")
-    local PlayerListTitle = Instance.new("TextLabel")
-    local PlayerListClose = Instance.new("TextButton")
-    local PlayerListScrolling = Instance.new("ScrollingFrame")
+local BuildingCommands = {
+    "Give F3X",
+    "Give F3X All",
+    "Delete Parts",
+    "Delete All Parts",
+    "Save Map",
+    "Load Map",
+    "Fly Mode",
+    "Noclip Mode"
+}
+
+local SectionLabel = function(Text, Parent)
+    local Label = Instance.new("TextLabel")
+    Label.Name = Text.."Label"
+    Label.Parent = Parent
+    Label.BackgroundTransparency = 1
+    Label.Size = UDim2.new(0.92, 0, 0, 30)
+    Label.Font = GUI_SETTINGS.TitleFont
+    Label.Text = ":: "..Text.." ::"
+    Label.TextColor3 = GUI_SETTINGS.AccentColor
+    Label.TextSize = 16
+    Label.TextXAlignment = Enum.TextXAlignment.Left
     
-    PlayerListFrame.Name = "PlayerListFrame"
-    PlayerListFrame.Parent = ScreenGui
-    PlayerListFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    PlayerListFrame.BorderSizePixel = 0
-    PlayerListFrame.Position = UDim2.new(0.4, 0, 0.4, 0)
-    PlayerListFrame.Size = UDim2.new(0, 200, 0, 300)
-    PlayerListFrame.Active = true
-    PlayerListFrame.Draggable = true
+    return Label
+end
+
+-- إضافة أقسام الأوامر
+SectionLabel("Player Controls", CommandsFrame)
+for _, cmd in ipairs(PlayerCommands) do
+    CreateDynaButton(cmd)
+end
+
+SectionLabel("Building Tools", CommandsFrame)
+for _, cmd in ipairs(BuildingCommands) do
+    CreateDynaButton(cmd)
+end
+
+-- أنيميشنات الواجهة
+local function ToggleGUI()
+    if MainFrame.Size == UDim2.new(0, 360, 0, 480) then
+        -- إغلاق مع أنيميشن
+        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }):Play()
+    else
+        -- فتح مع أنيميشن
+        MainFrame.Visible = true
+        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
+            Size = UDim2.new(0, 360, 0, 480),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }):Play()
+    end
+end
+
+-- تفعيل/إلغاء الواجهة بالضغط على F5
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.F5 and not gameProcessed then
+        ToggleGUI()
+    end
+end)
+
+CloseButton.MouseButton1Click:Connect(ToggleGUI)
+
+-- نظام سحب الواجهة
+local Dragging, DragInput, DragStart, StartPos
+
+Header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = true
+        DragStart = input.Position
+        StartPos = MainFrame.Position
+        
+        local connection
+        connection = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+                connection:Disconnect()
+            end
+        end)
+    end
+end)
+
+Header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        DragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == DragInput and Dragging then
+        local delta = input.Position - DragStart
+        MainFrame.Position = UDim2.new(
+            StartPos.X.Scale, 
+            StartPos.X.Offset + delta.X,
+            StartPos.Y.Scale, 
+            StartPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- نظام تغيير حجم الواجهة
+local Resizing, ResizeStart
+
+local ResizeHandle = Instance.new("Frame")
+ResizeHandle.Name = "ResizeHandle"
+ResizeHandle.Parent = MainFrame
+ResizeHandle.BackgroundTransparency = 1
+ResizeHandle.Size = UDim2.new(0, 20, 0, 20)
+ResizeHandle.Position = UDim2.new(1, -20, 1, -20)
+ResizeHandle.ZIndex = 2
+
+local ResizeIcon = Instance.new("ImageLabel")
+ResizeIcon.Name = "ResizeIcon"
+ResizeIcon.Parent = ResizeHandle
+ResizeIcon.BackgroundTransparency = 1
+ResizeIcon.Size = UDim2.new(1, 0, 1, 0)
+ResizeIcon.Image = "rbxassetid://3926305904"
+ResizeIcon.ImageRectOffset = Vector2.new(524, 964)
+ResizeIcon.ImageRectSize = Vector2.new(36, 36)
+ResizeIcon.ImageColor3 = Color3.fromRGB(150, 150, 150)
+
+ResizeHandle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Resizing = true
+        ResizeStart = input.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if Resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - ResizeStart
+        local newSize = UDim2.new(
+            0, math.clamp(MainFrame.AbsoluteSize.X + delta.X, 300, 600),
+            0, math.clamp(MainFrame.AbsoluteSize.Y + delta.Y, 400, 800)
+        )
+        MainFrame.Size = newSize
+        ResizeStart = input.Position
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Resizing = false
+    end
+end)
+
+-- نظام اختيار اللاعبين
+local function ShowPlayerSelection(Callback)
+    local SelectionFrame = Instance.new("Frame")
+    SelectionFrame.Name = "PlayerSelectionFrame"
+    SelectionFrame.Parent = DynaFlipGUI
+    SelectionFrame.BackgroundColor3 = GUI_SETTINGS.HeaderColor
+    SelectionFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    SelectionFrame.Size = UDim2.new(0, 280, 0, 350)
+    SelectionFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    SelectionFrame.ZIndex = 10
     
-    PlayerListTitle.Name = "PlayerListTitle"
-    PlayerListTitle.Parent = PlayerListFrame
-    PlayerListTitle.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    PlayerListTitle.Size = UDim2.new(1, 0, 0, 30)
-    PlayerListTitle.Font = Enum.Font.SourceSansBold
-    PlayerListTitle.Text = "اختر لاعب"
-    PlayerListTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PlayerListTitle.TextSize = 18
+    local SelectionCorner = Instance.new("UICorner")
+    SelectionCorner.Parent = SelectionFrame
     
-    PlayerListClose.Name = "PlayerListClose"
-    PlayerListClose.Parent = PlayerListTitle
-    PlayerListClose.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    PlayerListClose.Position = UDim2.new(0.9, 0, 0, 0)
-    PlayerListClose.Size = UDim2.new(0, 30, 0, 30)
-    PlayerListClose.Font = Enum.Font.SourceSansBold
-    PlayerListClose.Text = "X"
-    PlayerListClose.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PlayerListClose.TextSize = 18
-    PlayerListClose.MouseButton1Click:Connect(function()
-        PlayerListFrame:Destroy()
-    end)
+    local Title = Instance.new("TextLabel")
+    Title.Parent = SelectionFrame
+    Title.BackgroundTransparency = 1
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.Font = GUI_SETTINGS.TitleFont
+    Title.Text = "Select Player"
+    Title.TextColor3 = GUI_SETTINGS.AccentColor
+    Title.TextSize = 18
     
-    PlayerListScrolling.Parent = PlayerListFrame
-    PlayerListScrolling.Position = UDim2.new(0, 0, 0, 30)
-    PlayerListScrolling.Size = UDim2.new(1, 0, 1, -30)
-    PlayerListScrolling.CanvasSize = UDim2.new(0, 0, 0, 0)
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Parent = Title
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+    CloseButton.Position = UDim2.new(0.9, 0, 0.1, 0)
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Font = GUI_SETTINGS.TitleFont
+    CloseButton.Text = "×"
+    CloseButton.TextColor3 = GUI_SETTINGS.TextColor
+    CloseButton.TextSize = 20
+    CloseButton.ZIndex = 11
     
-    -- إضافة اللاعبين إلى القائمة
+    local PlayersList = Instance.new("ScrollingFrame")
+    PlayersList.Parent = SelectionFrame
+    PlayersList.BackgroundTransparency = 1
+    PlayersList.Position = UDim2.new(0, 0, 0, 45)
+    PlayersList.Size = UDim2.new(1, 0, 1, -45)
+    PlayersList.CanvasSize = UDim2.new(0, 0, 0, 0)
+    PlayersList.ScrollBarThickness = 6
+    
+    local Layout = Instance.new("UIListLayout")
+    Layout.Parent = PlayersList
+    Layout.Padding = UDim.new(0, 5)
+    
     local players = game:GetService("Players"):GetPlayers()
     for i, player in ipairs(players) do
         if player ~= Player then
-            local PlayerButton = Instance.new("TextButton")
-            PlayerButton.Name = player.Name
-            PlayerButton.Parent = PlayerListScrolling
-            PlayerButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-            PlayerButton.Position = UDim2.new(0.05, 0, 0, (i-1)*40)
-            PlayerButton.Size = UDim2.new(0.9, 0, 0, 35)
-            PlayerButton.Font = Enum.Font.SourceSans
-            PlayerButton.Text = player.Name
-            PlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            PlayerButton.TextSize = 14
+            local PlayerButton = CreateDynaButton(player.Name)
+            PlayerButton.Parent = PlayersList
+            PlayerButton.Size = UDim2.new(0.95, 0, 0, 35)
             
-            PlayerListScrolling.CanvasSize = UDim2.new(0, 0, 0, i*40)
+            PlayerButton.MouseButton1Click:Connect(function()
+                Callback(player)
+                SelectionFrame:Destroy()
+            end)
             
-            return player
+            PlayersList.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y)
         end
     end
     
-    return nil
+    CloseButton.MouseButton1Click:Connect(function()
+        SelectionFrame:Destroy()
+    end)
 end
 
--- وظائف الأوامر
-local function BanPlayer(player)
-    -- كود البان هنا
-    print("تم بان اللاعب: "..player.Name)
-end
-
-local function KickPlayer(player)
-    -- كود الكيك هنا
-    print("تم كيك اللاعب: "..player.Name)
-end
-
-local function GiveF3X(player)
-    -- كود إعطاء F3X هنا
-    print("تم إعطاء F3X للاعب: "..player.Name)
-end
-
-local function GiveBtools(player)
-    -- كود إعطاء Btools هنا
-    print("تم إعطاء Btools للاعب: "..player.Name)
-end
-
-local function ToggleFly()
-    -- كود الطيران هنا
-    print("تم تفعيل/إيقاف الطيران")
-end
-
-local function ToggleNoclip()
-    -- كود النوكلب هنا
-    print("تم تفعيل/إيقاف النوكلب")
-end
-
-local function KillAllPlayers()
-    -- كود قتل جميع اللاعبين هنا
-    print("تم قتل جميع اللاعبين")
-end
-
--- ربط الأزرار بالوظائف
-BanButton.MouseButton1Click:Connect(function()
-    local player = OpenPlayerList()
-    if player then
-        BanPlayer(player)
-    end
+-- ربط الأوامر بالوظائف
+CommandsFrame:FindFirstChild("Ban Player").MouseButton1Click:Connect(function()
+    ShowPlayerSelection(function(player)
+        -- كود حظر اللاعب
+        print("Banning player:", player.Name)
+    end)
 end)
 
-KickButton.MouseButton1Click:Connect(function()
-    local player = OpenPlayerList()
-    if player then
-        KickPlayer(player)
-    end
+CommandsFrame:FindFirstChild("Ban All").MouseButton1Click:Connect(function()
+    -- كود حظر جميع اللاعبين
+    print("Banning all players")
 end)
 
-F3XButton.MouseButton1Click:Connect(function()
-    local player = OpenPlayerList()
-    if player then
-        GiveF3X(player)
-    end
-end)
-
-BtoolsButton.MouseButton1Click:Connect(function()
-    local player = OpenPlayerList()
-    if player then
-        GiveBtools(player)
-    end
-end)
-
-FlyButton.MouseButton1Click:Connect(ToggleFly)
-NoclipButton.MouseButton1Click:Connect(ToggleNoclip)
-KillAllButton.MouseButton1Click:Connect(KillAllPlayers)
-
--- اختصار لوحة المفاتيح لفتح/إغلاق الواجهة (F4)
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.F4 and not gameProcessed then
-        if ScreenGui.Enabled then
-            ScreenGui.Enabled = false
-        else
-            ScreenGui.Enabled = true
-        end
-    end
-end)
+-- يمكنك إضافة باقي الأوامر بنفس الطريقة
