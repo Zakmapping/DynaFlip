@@ -3,11 +3,9 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- إنشاء واجهة DynaFlip الرئيسية
 local DynaFlip = Instance.new("ScreenGui")
 DynaFlip.Name = "DynaFlipAdminPanel"
 DynaFlip.ResetOnSpawn = false
@@ -15,7 +13,6 @@ DynaFlip.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 DynaFlip.DisplayOrder = 999
 DynaFlip.Parent = CoreGui
 
--- إنشاء زر DF الدائري
 local DFButton = Instance.new("TextButton")
 DFButton.Name = "DFCircleButton"
 DFButton.Size = UDim2.new(0, 60, 0, 60)
@@ -30,12 +27,10 @@ DFButton.TextStrokeTransparency = 0
 DFButton.TextStrokeColor3 = Color3.fromRGB(200, 200, 255)
 DFButton.Parent = DynaFlip
 
--- جعل الزر دائرياً
 local UICornerDF = Instance.new("UICorner")
 UICornerDF.CornerRadius = UDim.new(1, 0)
 UICornerDF.Parent = DFButton
 
--- إضافة حدود متلونة
 local Border = Instance.new("UIStroke")
 Border.Name = "AnimatedBorder"
 Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -43,45 +38,6 @@ Border.Color = Color3.fromRGB(100, 70, 200)
 Border.Thickness = 3
 Border.Parent = DFButton
 
--- تأثيرات حركية للزر الدائري
-local rotation = 0
-local borderAnimation = RunService.RenderStepped:Connect(function(dt)
-    rotation = (rotation + 1 * dt) % (2 * math.pi)
-    local color = Color3.fromHSV(rotation/(2*math.pi), 0.8, 1)
-    Border.Color = color
-end)
-
--- وظيفة لجعل العنصر قابلاً للسحب
-local function MakeDraggable(frame)
-    local dragStart = nil
-    local startPos = nil
-    
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragStart = input.Position
-            startPos = frame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragStart = nil
-                end
-            end)
-        end
-    end)
-    
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if dragStart then
-                local delta = input.Position - dragStart
-                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            end
-        end
-    end)
-end
-
-MakeDraggable(DFButton)
-
--- إنشاء الواجهة الرئيسية
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 350, 0, 400)
@@ -201,10 +157,6 @@ local UICorner5 = Instance.new("UICorner")
 UICorner5.CornerRadius = UDim.new(0, 4)
 UICorner5.Parent = CmdButton
 
-local Minimized = false
-local MobileMode = false
-local CmdBarVisible = false
-
 local function CreateButton(text, color)
     local Button = Instance.new("TextButton")
     Button.Name = text.."Button"
@@ -220,9 +172,6 @@ local function CreateButton(text, color)
     UICorner.CornerRadius = UDim.new(0, 8)
     UICorner.Parent = Button
     
-    local ButtonText = Button:FindFirstChildOfClass("TextLabel") or Button
-    local TextSize = game:GetService("TextService"):GetTextSize(ButtonText.Text, ButtonText.TextSize, ButtonText.Font, Vector2.new(1000, 100))
-    
     local HoverEffect = Instance.new("Frame")
     HoverEffect.Name = "HoverEffect"
     HoverEffect.Size = UDim2.new(0, 0, 1, 0)
@@ -237,19 +186,17 @@ local function CreateButton(text, color)
     UICorner2.Parent = HoverEffect
     
     Button.MouseEnter:Connect(function()
-        local Tween = TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
+        TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 0.7
-        })
-        Tween:Play()
+        }:Play()
     end)
     
     Button.MouseLeave:Connect(function()
-        local Tween = TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
+        TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
             Size = UDim2.new(0, 0, 1, 0),
             BackgroundTransparency = 0.8
-        })
-        Tween:Play()
+        }:Play()
     end)
     
     Button.MouseButton1Click:Connect(function()
@@ -285,6 +232,10 @@ ShutdownButton.Parent = ButtonsContainer
 local ToggleCmdBarButton = CreateButton("شريط الأوامر (CMD)", Color3.fromRGB(120, 0, 200))
 ToggleCmdBarButton.Parent = ButtonsContainer
 
+local Minimized = false
+local MobileMode = false
+local CmdBarVisible = false
+
 local function ToggleMobileMode()
     MobileMode = not MobileMode
     if MobileMode then
@@ -293,25 +244,6 @@ local function ToggleMobileMode()
     else
         MainFrame.Size = UDim2.new(0, 350, 0, 400)
         MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
-    end
-end
-
-local function ToggleMinimize()
-    Minimized = not Minimized
-    if Minimized then
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-            Size = UDim2.new(0, 350, 0, 40)
-        }:Play()
-        TweenService:Create(ButtonsContainer, TweenInfo.new(0.3), {
-            BackgroundTransparency = 1
-        }:Play()
-    else
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-            Size = UDim2.new(0, 350, 0, 400)
-        }:Play()
-        TweenService:Create(ButtonsContainer, TweenInfo.new(0.3), {
-            BackgroundTransparency = 0
-        }:Play()
     end
 end
 
@@ -336,50 +268,159 @@ local function ToggleMainFrame()
     end
 end
 
-DFButton.MouseButton1Click:Connect(ToggleMainFrame)
-ResizeButton.MouseButton1Click:Connect(ToggleMobileMode)
-CloseButton.MouseButton1Click:Connect(function()
-    local FadeOut = TweenService:Create(MainFrame, TweenInfo.new(0.5), {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0, 0, 0, 0)
-    })
-    FadeOut:Play()
-    FadeOut.Completed:Wait()
-    DynaFlip:Destroy()
-end)
+local function MakeDraggable(frame)
+    local dragStart = nil
+    local startPos = nil
+    
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragStart = nil
+                end
+            end)
+        end
+    end)
+    
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            if dragStart then
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end
+    end)
+end
 
-ToggleCmdBarButton.MouseButton1Click:Connect(ToggleCmdBar)
-
-MakeDraggable(MainFrame)
-
--- الأوامر الأساسية
 local function Fly()
-    -- كود الطيران السابق
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    if humanoid:FindFirstChild("FlyAnim") then
+        humanoid.FlyAnim:Destroy()
+        humanoid:SetAttribute("Flying", false)
+        return
+    end
+    
+    humanoid:SetAttribute("Flying", true)
+    
+    local bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.Name = "FlyGyro"
+    bodyGyro.P = 10000
+    bodyGyro.MaxTorque = Vector3.new(1, 1, 1) * 10000
+    bodyGyro.CFrame = character:WaitForChild("HumanoidRootPart").CFrame
+    bodyGyro.Parent = character:WaitForChild("HumanoidRootPart")
+    
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Name = "FlyVelocity"
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 10000
+    bodyVelocity.Parent = character:WaitForChild("HumanoidRootPart")
+    
+    local flyAnim = Instance.new("Animation")
+    flyAnim.Name = "FlyAnim"
+    flyAnim.AnimationId = "rbxassetid://3541044388"
+    flyAnim.Parent = humanoid
+    
+    humanoid:LoadAnimation(flyAnim):Play()
+    
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if not humanoid or not humanoid:GetAttribute("Flying") then
+            connection:Disconnect()
+            return
+        end
+        
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+        local cam = workspace.CurrentCamera
+        local lookVector = cam.CFrame.LookVector
+        local rightVector = cam.CFrame.RightVector
+        
+        local forward = 0
+        local backward = 0
+        local left = 0
+        local right = 0
+        local up = 0
+        local down = 0
+        
+        if UIS:IsKeyDown(Enum.KeyCode.W) then forward = 1 end
+        if UIS:IsKeyDown(Enum.KeyCode.S) then backward = -1 end
+        if UIS:IsKeyDown(Enum.KeyCode.A) then left = -1 end
+        if UIS:IsKeyDown(Enum.KeyCode.D) then right = 1 end
+        if UIS:IsKeyDown(Enum.KeyCode.Space) then up = 1 end
+        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then down = -1 end
+        
+        local direction = (lookVector * (forward + backward)) + (rightVector * (left + right)) + (Vector3.new(0, 1, 0) * (up + down))
+        direction = direction.Unit * 50
+        
+        bodyVelocity.Velocity = direction
+        bodyGyro.CFrame = cam.CFrame
+    end)
 end
 
 local function NoClip()
-    -- كود NoClip السابق
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    
+    if character:FindFirstChild("NoClipValue") then
+        character.NoClipValue:Destroy()
+        return
+    end
+    
+    local noclipValue = Instance.new("BoolValue")
+    noclipValue.Name = "NoClipValue"
+    noclipValue.Parent = character
+    
+    local function NoclipLoop()
+        if not character or not character:FindFirstChild("NoClipValue") then return end
+        
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then
+                part.CanCollide = false
+            end
+        end
+    end
+    
+    local connection
+    connection = RunService.Stepped:Connect(function()
+        if not character or not character:FindFirstChild("NoClipValue") then
+            connection:Disconnect()
+            return
+        end
+        NoclipLoop()
+    end)
 end
 
 local function GiveBtools()
-    -- كود Btools السابق
+    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+    
+    local hammer = Instance.new("HopperBin")
+    hammer.Name = "Hammer"
+    hammer.BinType = Enum.BinType.Hammer
+    hammer.Parent = backpack
+    
+    local cloneTool = Instance.new("HopperBin")
+    cloneTool.Name = "Clone"
+    cloneTool.BinType = Enum.BinType.Clone
+    cloneTool.Parent = backpack
+    
+    local grabTool = Instance.new("HopperBin")
+    grabTool.Name = "Grab"
+    grabTool.BinType = Enum.BinType.Grab
+    grabTool.Parent = backpack
 end
 
 local function ServerLock()
-    -- كود ServerLock السابق
+    game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value = not game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value
 end
 
 local function ShutdownServer()
-    -- كود Shutdown السابق
+    game:GetService("ReplicatedStorage"):FindFirstChild("ShutdownServer", true):FireServer()
 end
 
-FlyButton.MouseButton1Click:Connect(Fly)
-NoClipButton.MouseButton1Click:Connect(NoClip)
-BtoolsButton.MouseButton1Click:Connect(GiveBtools)
-ServerLockButton.MouseButton1Click:Connect(ServerLock)
-ShutdownButton.MouseButton1Click:Connect(ShutdownServer)
-
--- معالجة الأوامر في شريط الأوامر
 local function ExecuteCommand(command)
     command = string.lower(command)
     
@@ -393,10 +434,21 @@ local function ExecuteCommand(command)
         ServerLock()
     elseif command == "shutdown" then
         ShutdownServer()
-    else
-        -- يمكنك إضافة المزيد من الأوامر المخصصة هنا
     end
 end
+
+DFButton.MouseButton1Click:Connect(ToggleMainFrame)
+ResizeButton.MouseButton1Click:Connect(ToggleMobileMode)
+CloseButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+ToggleCmdBarButton.MouseButton1Click:Connect(ToggleCmdBar)
+FlyButton.MouseButton1Click:Connect(Fly)
+NoClipButton.MouseButton1Click:Connect(NoClip)
+BtoolsButton.MouseButton1Click:Connect(GiveBtools)
+ServerLockButton.MouseButton1Click:Connect(ServerLock)
+ShutdownButton.MouseButton1Click:Connect(ShutdownServer)
 
 CmdButton.MouseButton1Click:Connect(function()
     ExecuteCommand(CmdTextBox.Text)
@@ -410,34 +462,16 @@ CmdTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
+MakeDraggable(MainFrame)
+MakeDraggable(DFButton)
+
+local rotation = 0
+local borderAnimation = RunService.RenderStepped:Connect(function(dt)
+    rotation = (rotation + 1 * dt) % (2 * math.pi)
+    local color = Color3.fromHSV(rotation/(2*math.pi), 0.8, 1)
+    Border.Color = color
+end)
+
 if UIS.TouchEnabled then
     ToggleMobileMode()
 end
-
--- تأثيرات حركية للإطار الرئيسي
-local function AnimateFrame()
-    local rotation = 0
-    local connection
-    
-    connection = RunService.RenderStepped:Connect(function(dt)
-        rotation = (rotation + 0.5 * dt) % (2 * math.pi)
-        MainFrame.BackgroundColor3 = Color3.fromRGB(
-            30 + math.sin(rotation) * 10,
-            30 + math.cos(rotation) * 10,
-            40 + math.sin(rotation + math.pi/2) * 10
-        )
-    end)
-    
-    return connection
-end
-
-local animationConnection = AnimateFrame()
-
-DynaFlip.Destroying:Connect(function()
-    if animationConnection then
-        animationConnection:Disconnect()
-    end
-    if borderAnimation then
-        borderAnimation:Disconnect()
-    end
-end)
