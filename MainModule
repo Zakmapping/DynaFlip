@@ -1,11 +1,27 @@
--- انتظار تحميل اللعبة وتوفر الخدمات
-repeat task.wait() until game:IsLoaded()
-local Players = game:FindService("Players")
-local CoreGui = game:FindService("CoreGui")
-local TweenService = game:FindService("TweenService")
-local RunService = game:FindService("RunService")
+-- انتظار تحميل اللعبة
+if not game:IsLoaded() then game.Loaded:Wait() end
 
--- المتغيرات الأساسية مع التحقق من القيم
+-- خدمات روبلوكس مع التحقق من وجودها
+local function GetService(name)
+    local service = game:GetService(name)
+    if not service then
+        warn("الخدمة غير متوفرة: "..name)
+        return nil
+    end
+    return service
+end
+
+local Players = GetService("Players")
+local CoreGui = GetService("CoreGui")
+local TweenService = GetService("TweenService")
+local RunService = GetService("RunService")
+
+if not (Players and CoreGui and TweenService and RunService) then
+    warn("لا يمكن تحميل الخدمات المطلوبة")
+    return
+end
+
+-- المتغيرات الأساسية
 local LocalPlayer = Players.LocalPlayer
 while not LocalPlayer do
     task.wait(1)
@@ -14,13 +30,13 @@ end
 
 -- إنشاء الواجهة الرئيسية
 local DynaFlip = Instance.new("ScreenGui")
-DynaFlip.Name = "DynaFlipUltimate"
+DynaFlip.Name = "DynaFlipFinal"
 DynaFlip.ResetOnSpawn = false
 DynaFlip.Parent = CoreGui
 
--- زر DF مع تأثيرات متحركة وآمنة
+-- زر DF مع تأثيرات
 local DFButton = Instance.new("TextButton")
-DFButton.Name = "DFMainButton"
+DFButton.Name = "DFButton"
 DFButton.Size = UDim2.new(0, 65, 0, 65)
 DFButton.Position = UDim2.new(0, 25, 0.5, -32)
 DFButton.BackgroundColor3 = Color3.new(1,1,1)
@@ -32,24 +48,36 @@ DFButton.ZIndex = 2
 DFButton.Parent = DynaFlip
 
 -- تأثيرات الزر (مع التحقق من وجود الخصائص)
-if DFButton:IsA("TextButton") then
-    local UIGradient = Instance.new("UIGradient")
-    UIGradient.Color = ColorSequence.new({
+local function AddEffect(obj, effect, props)
+    if obj and effect and props then
+        local e = Instance.new(effect)
+        for k,v in pairs(props) do
+            if e[k] ~= nil then
+                e[k] = v
+            end
+        end
+        e.Parent = obj
+        return e
+    end
+    return nil
+end
+
+AddEffect(DFButton, "UIGradient", {
+    Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(85, 0, 255))
-    })
-    UIGradient.Rotation = 90
-    UIGradient.Parent = DFButton
+    }),
+    Rotation = 90
+})
 
-    local UIStroke = Instance.new("UIStroke")
-    UIStroke.Color = Color3.fromRGB(255, 255, 255)
-    UIStroke.Thickness = 3
-    UIStroke.Parent = DFButton
+AddEffect(DFButton, "UIStroke", {
+    Color = Color3.fromRGB(255, 255, 255),
+    Thickness = 3
+})
 
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(1,0)
-    UICorner.Parent = DFButton
-end
+AddEffect(DFButton, "UICorner", {
+    CornerRadius = UDim.new(1,0)
+})
 
 -- إطار الواجهة الرئيسية
 local MainFrame = Instance.new("Frame")
@@ -62,19 +90,17 @@ MainFrame.BackgroundTransparency = 0.2
 MainFrame.Visible = false
 MainFrame.Parent = DynaFlip
 
--- تأثيرات الواجهة (مع التحقق)
-if MainFrame:IsA("Frame") then
-    local FrameCorner = Instance.new("UICorner")
-    FrameCorner.CornerRadius = UDim.new(0,12)
-    FrameCorner.Parent = MainFrame
+-- تأثيرات الواجهة
+AddEffect(MainFrame, "UICorner", {
+    CornerRadius = UDim.new(0,12)
+})
 
-    local FrameStroke = Instance.new("UIStroke")
-    FrameStroke.Color = Color3.fromRGB(100,100,200)
-    FrameStroke.Thickness = 2
-    FrameStroke.Parent = MainFrame
-end
+AddEffect(MainFrame, "UIStroke", {
+    Color = Color3.fromRGB(100,100,200),
+    Thickness = 2
+})
 
--- قائمة الأوامر مع أيقونات (تم تحديثها)
+-- قائمة الأوامر المعدلة
 local commands = {
     {
         name = "الطيران", 
@@ -136,7 +162,7 @@ local commands = {
     }
 }
 
--- إنشاء أزرار الأوامر (نسخة محسنة)
+-- إنشاء أزرار الأوامر
 local function CreateButton(cmd)
     local button = Instance.new("TextButton")
     button.Name = cmd.name.."Button"
@@ -149,7 +175,6 @@ local function CreateButton(cmd)
     button.BackgroundColor3 = cmd.color
     button.Parent = MainFrame
 
-    -- إضافة الأيقونة (مع التحقق من وجودها)
     if cmd.icon then
         local icon = Instance.new("ImageLabel")
         icon.Name = "Icon"
@@ -160,17 +185,15 @@ local function CreateButton(cmd)
         icon.Parent = button
     end
 
-    -- التأثيرات المرئية
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,8)
-    corner.Parent = button
+    AddEffect(button, "UICorner", {
+        CornerRadius = UDim.new(0,8)
+    })
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.new(1,1,1)
-    stroke.Thickness = 1
-    stroke.Parent = button
+    AddEffect(button, "UIStroke", {
+        Color = Color3.new(1,1,1),
+        Thickness = 1
+    })
 
-    -- تفاعلات الزر
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
             BackgroundTransparency = 0.2,
@@ -194,11 +217,10 @@ local function CreateButton(cmd)
             BackgroundTransparency = 0
         }:Play()
         
-        pcall(cmd.func) -- تنفيذ آمن للأمر
+        pcall(cmd.func)
     end)
 end
 
--- إنشاء جميع الأزرار
 for _, cmd in ipairs(commands) do
     CreateButton(cmd)
 end
@@ -218,7 +240,7 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
--- فتح/إغلاق الواجهة مع تأثيرات
+-- فتح/إغلاق الواجهة
 local function ToggleUI()
     if MainFrame.Visible then
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
@@ -238,10 +260,8 @@ local function ToggleUI()
     end
 end
 
--- تفعيل الزر الرئيسي
 DFButton.MouseButton1Click:Connect(function()
-    pcall(ToggleUI) -- تنفيذ آمن
+    pcall(ToggleUI)
 end)
 
--- التأكد من ظهور الزر
 DFButton.Visible = true
