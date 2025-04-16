@@ -19,25 +19,32 @@ DFButton.Name = "DFCircleButton"
 DFButton.Size = UDim2.new(0, 60, 0, 60)
 DFButton.Position = UDim2.new(0, 20, 0.5, -30)
 DFButton.AnchorPoint = Vector2.new(0, 0.5)
-DFButton.BackgroundColor3 = Color3.new(0.18, 0.18, 0.24)
+DFButton.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
 DFButton.Text = "DF"
 DFButton.TextColor3 = Color3.new(1, 1, 1)
 DFButton.Font = Enum.Font.GothamBlack
 DFButton.TextSize = 24
 DFButton.TextStrokeTransparency = 0
-DFButton.TextStrokeColor3 = Color3.new(0.8, 0.8, 1)
+DFButton.TextStrokeColor3 = Color3.fromRGB(200, 200, 255)
 DFButton.Parent = DynaFlip
 
 local UICornerDF = Instance.new("UICorner")
 UICornerDF.CornerRadius = UDim.new(1, 0)
 UICornerDF.Parent = DFButton
 
+local Border = Instance.new("UIStroke")
+Border.Name = "AnimatedBorder"
+Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+Border.Color = Color3.fromRGB(100, 70, 200)
+Border.Thickness = 3
+Border.Parent = DFButton
+
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 350, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.BackgroundColor3 = Color3.new(0.12, 0.12, 0.16)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 MainFrame.BackgroundTransparency = 0.1
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -48,7 +55,7 @@ local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
 TopBar.Size = UDim2.new(1, 0, 0, 40)
 TopBar.Position = UDim2.new(0, 0, 0, 0)
-TopBar.BackgroundColor3 = Color3.new(0.18, 0.18, 0.24)
+TopBar.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
 TopBar.BorderSizePixel = 0
 TopBar.Parent = MainFrame
 
@@ -67,7 +74,7 @@ local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
-CloseButton.BackgroundColor3 = Color3.new(0.8, 0.24, 0.24)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.new(1, 1, 1)
 CloseButton.Font = Enum.Font.GothamBold
@@ -93,18 +100,68 @@ local function CreateButton(text, color)
     Button.Font = Enum.Font.GothamBold
     Button.TextSize = 16
     Button.AutoButtonColor = false
-    Button.Parent = ButtonsContainer
+    
+    local HoverEffect = Instance.new("Frame")
+    HoverEffect.Name = "HoverEffect"
+    HoverEffect.Size = UDim2.new(0, 0, 1, 0)
+    HoverEffect.Position = UDim2.new(0, 0, 0, 0)
+    HoverEffect.BackgroundColor3 = Color3.new(1, 1, 1)
+    HoverEffect.BackgroundTransparency = 0.8
+    HoverEffect.BorderSizePixel = 0
+    HoverEffect.Parent = Button
+    
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 0.7
+        }:Play()
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
+            Size = UDim2.new(0, 0, 1, 0),
+            BackgroundTransparency = 0.8
+        }:Play()
+    end)
+    
+    Button.MouseButton1Click:Connect(function()
+        local Pulse = TweenService:Create(Button, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0.5
+        })
+        Pulse:Play()
+        task.wait(0.2)
+        Pulse = TweenService:Create(Button, TweenInfo.new(0.3), {
+            BackgroundTransparency = 0
+        })
+        Pulse:Play()
+    end)
+    
     return Button
 end
 
-local FlyButton = CreateButton("الطيران (Fly)", Color3.new(0, 0.47, 0.84))
-local NoClipButton = CreateButton("المرور عبر الأشياء (NoClip)", Color3.new(0, 0.71, 0.47))
-local BtoolsButton = CreateButton("أدوات البناء (Btools)", Color3.new(0.86, 0.63, 0))
-local ServerLockButton = CreateButton("قفل السيرفر (ServerLock)", Color3.new(0.71, 0, 0))
-local ShutdownButton = CreateButton("إيقاف السيرفر (Shutdown)", Color3.new(0.59, 0, 0.31))
+local FlyButton = CreateButton("الطيران (Fly)", Color3.fromRGB(0, 120, 215))
+FlyButton.Parent = ButtonsContainer
+
+local NoClipButton = CreateButton("المرور عبر الأشياء (NoClip)", Color3.fromRGB(0, 180, 120))
+NoClipButton.Parent = ButtonsContainer
+
+local BtoolsButton = CreateButton("أدوات البناء (Btools)", Color3.fromRGB(220, 160, 0))
+BtoolsButton.Parent = ButtonsContainer
+
+local ServerLockButton = CreateButton("قفل السيرفر (ServerLock)", Color3.fromRGB(180, 0, 0))
+ServerLockButton.Parent = ButtonsContainer
+
+local ShutdownButton = CreateButton("إيقاف السيرفر (Shutdown)", Color3.fromRGB(150, 0, 80))
+ShutdownButton.Parent = ButtonsContainer
 
 local function ToggleMainFrame()
     MainFrame.Visible = not MainFrame.Visible
+    if MainFrame.Visible then
+        MainFrame.BackgroundTransparency = 1
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+            BackgroundTransparency = 0.1
+        }):Play()
+    end
 end
 
 local function Fly()
@@ -154,11 +211,24 @@ local function ShutdownServer()
 end
 
 DFButton.MouseButton1Click:Connect(ToggleMainFrame)
-CloseButton.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
+CloseButton.MouseButton1Click:Connect(function() 
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 1
+    }:Play()
+    task.wait(0.3)
+    MainFrame.Visible = false
+end)
+
 FlyButton.MouseButton1Click:Connect(Fly)
 NoClipButton.MouseButton1Click:Connect(NoClip)
 BtoolsButton.MouseButton1Click:Connect(GiveBtools)
 ServerLockButton.MouseButton1Click:Connect(ServerLock)
 ShutdownButton.MouseButton1Click:Connect(ShutdownServer)
+
+local rotation = 0
+RunService.RenderStepped:Connect(function(dt)
+    rotation = (rotation + dt) % (2 * math.pi)
+    Border.Color = Color3.fromHSV(rotation/(2*math.pi), 0.8, 1)
+end)
 
 DFButton.Visible = true
