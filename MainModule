@@ -19,47 +19,36 @@ DFButton.Name = "DFCircleButton"
 DFButton.Size = UDim2.new(0, 60, 0, 60)
 DFButton.Position = UDim2.new(0, 20, 0.5, -30)
 DFButton.AnchorPoint = Vector2.new(0, 0.5)
-DFButton.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+DFButton.BackgroundColor3 = Color3.new(0.18, 0.18, 0.24)
 DFButton.Text = "DF"
-DFButton.TextColor3 = Color3.white
+DFButton.TextColor3 = Color3.new(1, 1, 1)
 DFButton.Font = Enum.Font.GothamBlack
 DFButton.TextSize = 24
 DFButton.TextStrokeTransparency = 0
-DFButton.TextStrokeColor3 = Color3.fromRGB(200, 200, 255)
+DFButton.TextStrokeColor3 = Color3.new(0.8, 0.8, 1)
 DFButton.Parent = DynaFlip
 
 local UICornerDF = Instance.new("UICorner")
 UICornerDF.CornerRadius = UDim.new(1, 0)
 UICornerDF.Parent = DFButton
 
-local Border = Instance.new("UIStroke")
-Border.Name = "AnimatedBorder"
-Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-Border.Color = Color3.fromRGB(100, 70, 200)
-Border.Thickness = 3
-Border.Parent = DFButton
-
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 350, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+MainFrame.BackgroundColor3 = Color3.new(0.12, 0.12, 0.16)
 MainFrame.BackgroundTransparency = 0.1
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Visible = false
 MainFrame.Parent = DynaFlip
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MainFrame
-
 local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
 TopBar.Size = UDim2.new(1, 0, 0, 40)
 TopBar.Position = UDim2.new(0, 0, 0, 0)
-TopBar.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+TopBar.BackgroundColor3 = Color3.new(0.18, 0.18, 0.24)
 TopBar.BorderSizePixel = 0
 TopBar.Parent = MainFrame
 
@@ -69,7 +58,7 @@ Title.Size = UDim2.new(0, 200, 1, 0)
 Title.Position = UDim2.new(0.5, -100, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "DynaFlip - لوحة التحكم"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
 Title.Parent = TopBar
@@ -78,31 +67,12 @@ local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+CloseButton.BackgroundColor3 = Color3.new(0.8, 0.24, 0.24)
 CloseButton.Text = "X"
-CloseButton.TextColor3 = Color3.white
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.TextSize = 14
 CloseButton.Parent = TopBar
-
-local UICorner2 = Instance.new("UICorner")
-UICorner2.CornerRadius = UDim.new(0, 6)
-UICorner2.Parent = CloseButton
-
-local ResizeButton = Instance.new("TextButton")
-ResizeButton.Name = "ResizeButton"
-ResizeButton.Size = UDim2.new(0, 30, 0, 30)
-ResizeButton.Position = UDim2.new(1, -70, 0.5, -15)
-ResizeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
-ResizeButton.Text = "↔"
-ResizeButton.TextColor3 = Color3.white
-ResizeButton.Font = Enum.Font.GothamBold
-ResizeButton.TextSize = 14
-ResizeButton.Parent = TopBar
-
-local UICorner3 = Instance.new("UICorner")
-UICorner3.CornerRadius = UDim.new(0, 6)
-UICorner3.Parent = ResizeButton
 
 local ButtonsContainer = Instance.new("ScrollingFrame")
 ButtonsContainer.Name = "ButtonsContainer"
@@ -113,310 +83,67 @@ ButtonsContainer.ScrollBarThickness = 5
 ButtonsContainer.CanvasSize = UDim2.new(0, 0, 0, 500)
 ButtonsContainer.Parent = MainFrame
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Padding = UDim.new(0, 10)
-UIListLayout.Parent = ButtonsContainer
-
-local CmdBarFrame = Instance.new("Frame")
-CmdBarFrame.Name = "CmdBarFrame"
-CmdBarFrame.Size = UDim2.new(1, -20, 0, 40)
-CmdBarFrame.Position = UDim2.new(0, 10, 1, -50)
-CmdBarFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-CmdBarFrame.BorderSizePixel = 0
-CmdBarFrame.Visible = false
-CmdBarFrame.Parent = MainFrame
-
-local UICorner4 = Instance.new("UICorner")
-UICorner4.CornerRadius = UDim.new(0, 6)
-UICorner4.Parent = CmdBarFrame
-
-local CmdTextBox = Instance.new("TextBox")
-CmdTextBox.Name = "CmdTextBox"
-CmdTextBox.Size = UDim2.new(1, -10, 1, -10)
-CmdTextBox.Position = UDim2.new(0, 5, 0, 5)
-CmdTextBox.BackgroundTransparency = 1
-CmdTextBox.TextColor3 = Color3.white
-CmdTextBox.Font = Enum.Font.Gotham
-CmdTextBox.TextSize = 14
-CmdTextBox.PlaceholderText = "اكتب الأمر هنا..."
-CmdTextBox.PlaceholderColor3 = Color3.fromRGB(180, 180, 180)
-CmdTextBox.TextXAlignment = Enum.TextXAlignment.Right
-CmdTextBox.Parent = CmdBarFrame
-
-local CmdButton = Instance.new("TextButton")
-CmdButton.Name = "CmdButton"
-CmdButton.Size = UDim2.new(0, 80, 0, 30)
-CmdButton.Position = UDim2.new(1, -85, 0.5, -15)
-CmdButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-CmdButton.Text = "تنفيذ"
-CmdButton.TextColor3 = Color3.white
-CmdButton.Font = Enum.Font.GothamBold
-CmdButton.TextSize = 14
-CmdButton.Parent = CmdBarFrame
-
-local UICorner5 = Instance.new("UICorner")
-UICorner5.CornerRadius = UDim.new(0, 4)
-UICorner5.Parent = CmdButton
-
 local function CreateButton(text, color)
     local Button = Instance.new("TextButton")
     Button.Name = text.."Button"
     Button.Size = UDim2.new(1, 0, 0, 50)
     Button.BackgroundColor3 = color
     Button.Text = text
-    Button.TextColor3 = Color3.white
+    Button.TextColor3 = Color3.new(1, 1, 1)
     Button.Font = Enum.Font.GothamBold
     Button.TextSize = 16
     Button.AutoButtonColor = false
-    
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 8)
-    UICorner.Parent = Button
-    
-    local HoverEffect = Instance.new("Frame")
-    HoverEffect.Name = "HoverEffect"
-    HoverEffect.Size = UDim2.new(0, 0, 1, 0)
-    HoverEffect.Position = UDim2.new(0, 0, 0, 0)
-    HoverEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    HoverEffect.BackgroundTransparency = 0.8
-    HoverEffect.BorderSizePixel = 0
-    HoverEffect.Parent = Button
-    
-    local UICorner2 = Instance.new("UICorner")
-    UICorner2.CornerRadius = UDim.new(0, 8)
-    UICorner2.Parent = HoverEffect
-    
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 0.7
-        }):Play()
-    end)
-    
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 0, 1, 0),
-            BackgroundTransparency = 0.8
-        }):Play()
-    end)
-    
-    Button.MouseButton1Click:Connect(function()
-        local Pulse = TweenService:Create(Button, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            BackgroundTransparency = 0.5
-        })
-        Pulse:Play()
-        Pulse.Completed:Wait()
-        Pulse = TweenService:Create(Button, TweenInfo.new(0.5), {
-            BackgroundTransparency = 0
-        })
-        Pulse:Play()
-    end)
-    
+    Button.Parent = ButtonsContainer
     return Button
 end
 
-local FlyButton = CreateButton("الطيران (Fly)", Color3.fromRGB(0, 120, 215))
-FlyButton.Parent = ButtonsContainer
-
-local NoClipButton = CreateButton("المرور عبر الأشياء (NoClip)", Color3.fromRGB(0, 180, 120))
-NoClipButton.Parent = ButtonsContainer
-
-local BtoolsButton = CreateButton("أدوات البناء (Btools)", Color3.fromRGB(220, 160, 0))
-BtoolsButton.Parent = ButtonsContainer
-
-local ServerLockButton = CreateButton("قفل السيرفر (ServerLock)", Color3.fromRGB(180, 0, 0))
-ServerLockButton.Parent = ButtonsContainer
-
-local ShutdownButton = CreateButton("إيقاف السيرفر (Shutdown)", Color3.fromRGB(150, 0, 80))
-ShutdownButton.Parent = ButtonsContainer
-
-local ToggleCmdBarButton = CreateButton("شريط الأوامر (CMD)", Color3.fromRGB(120, 0, 200))
-ToggleCmdBarButton.Parent = ButtonsContainer
-
-local Minimized = false
-local MobileMode = false
-local CmdBarVisible = false
-
-local function ToggleMobileMode()
-    MobileMode = not MobileMode
-    if MobileMode then
-        MainFrame.Size = UDim2.new(0.9, 0, 0.7, 0)
-        MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    else
-        MainFrame.Size = UDim2.new(0, 350, 0, 400)
-        MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
-    end
-end
-
-local function ToggleCmdBar()
-    CmdBarVisible = not CmdBarVisible
-    CmdBarFrame.Visible = CmdBarVisible
-    
-    if CmdBarVisible then
-        CmdTextBox:CaptureFocus()
-        MainFrame.Size = UDim2.new(MainFrame.Size.X.Scale, MainFrame.Size.X.Offset, 0, MainFrame.AbsoluteSize.Y + 50)
-    else
-        MainFrame.Size = UDim2.new(MainFrame.Size.X.Scale, MainFrame.Size.X.Offset, 0, MainFrame.AbsoluteSize.Y - 50)
-    end
-end
+local FlyButton = CreateButton("الطيران (Fly)", Color3.new(0, 0.47, 0.84))
+local NoClipButton = CreateButton("المرور عبر الأشياء (NoClip)", Color3.new(0, 0.71, 0.47))
+local BtoolsButton = CreateButton("أدوات البناء (Btools)", Color3.new(0.86, 0.63, 0))
+local ServerLockButton = CreateButton("قفل السيرفر (ServerLock)", Color3.new(0.71, 0, 0))
+local ShutdownButton = CreateButton("إيقاف السيرفر (Shutdown)", Color3.new(0.59, 0, 0.31))
 
 local function ToggleMainFrame()
     MainFrame.Visible = not MainFrame.Visible
-    if MainFrame.Visible then
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            BackgroundTransparency = 0.1
-        }):Play()
-    end
-end
-
-local function MakeDraggable(frame)
-    local dragStart = nil
-    local startPos = nil
-    
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragStart = input.Position
-            startPos = frame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragStart = nil
-                end
-            end)
-        end
-    end)
-    
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if dragStart then
-                local delta = input.Position - dragStart
-                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            end
-        end
-    end)
 end
 
 local function Fly()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
-    
-    if humanoid:FindFirstChild("FlyAnim") then
-        humanoid.FlyAnim:Destroy()
-        humanoid:SetAttribute("Flying", false)
-        return
-    end
-    
-    humanoid:SetAttribute("Flying", true)
-    
-    local bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.Name = "FlyGyro"
-    bodyGyro.P = 10000
-    bodyGyro.MaxTorque = Vector3.new(1, 1, 1) * 10000
-    bodyGyro.CFrame = character:WaitForChild("HumanoidRootPart").CFrame
-    bodyGyro.Parent = character:WaitForChild("HumanoidRootPart")
-    
-    local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.Name = "FlyVelocity"
-    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    bodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 10000
-    bodyVelocity.Parent = character:WaitForChild("HumanoidRootPart")
-    
-    local flyAnim = Instance.new("Animation")
-    flyAnim.Name = "FlyAnim"
-    flyAnim.AnimationId = "rbxassetid://3541044388"
-    flyAnim.Parent = humanoid
-    
-    humanoid:LoadAnimation(flyAnim):Play()
-    
-    local connection
-    connection = RunService.Heartbeat:Connect(function()
-        if not humanoid or not humanoid:GetAttribute("Flying") then
-            connection:Disconnect()
-            return
+    local character = LocalPlayer.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Flying)
         end
-        
-        local rootPart = character:WaitForChild("HumanoidRootPart")
-        local cam = workspace.CurrentCamera
-        local lookVector = cam.CFrame.LookVector
-        local rightVector = cam.CFrame.RightVector
-        
-        local forward = 0
-        local backward = 0
-        local left = 0
-        local right = 0
-        local up = 0
-        local down = 0
-        
-        if UIS:IsKeyDown(Enum.KeyCode.W) then forward = 1 end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then backward = -1 end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then left = -1 end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then right = 1 end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then up = 1 end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then down = -1 end
-        
-        local direction = (lookVector * (forward + backward)) + (rightVector * (left + right)) + (Vector3.new(0, 1, 0) * (up + down))
-        direction = direction.Unit * 50
-        
-        bodyVelocity.Velocity = direction
-        bodyGyro.CFrame = cam.CFrame
-    end)
+    end
 end
 
 local function NoClip()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    
-    if character:FindFirstChild("NoClipValue") then
-        character.NoClipValue:Destroy()
-        return
-    end
-    
-    local noclipValue = Instance.new("BoolValue")
-    noclipValue.Name = "NoClipValue"
-    noclipValue.Parent = character
-    
-    local function NoclipLoop()
-        if not character or not character:FindFirstChild("NoClipValue") then return end
-        
+    local character = LocalPlayer.Character
+    if character then
         for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") and part.CanCollide then
+            if part:IsA("BasePart") then
                 part.CanCollide = false
             end
         end
     end
-    
-    local connection
-    connection = RunService.Stepped:Connect(function()
-        if not character or not character:FindFirstChild("NoClipValue") then
-            connection:Disconnect()
-            return
-        end
-        NoclipLoop()
-    end)
 end
 
 local function GiveBtools()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
-    if not backpack then return end
-    
-    local hammer = Instance.new("HopperBin")
-    hammer.Name = "Hammer"
-    hammer.BinType = Enum.BinType.Hammer
-    hammer.Parent = backpack
-    
-    local cloneTool = Instance.new("HopperBin")
-    cloneTool.Name = "Clone"
-    cloneTool.BinType = Enum.BinType.Clone
-    cloneTool.Parent = backpack
-    
-    local grabTool = Instance.new("HopperBin")
-    grabTool.Name = "Grab"
-    grabTool.BinType = Enum.BinType.Grab
-    grabTool.Parent = backpack
+    if backpack then
+        local hammer = Instance.new("HopperBin")
+        hammer.BinType = Enum.BinType.Hammer
+        hammer.Parent = backpack
+        
+        local clone = Instance.new("HopperBin")
+        clone.BinType = Enum.BinType.Clone
+        clone.Parent = backpack
+    end
 end
 
 local function ServerLock()
     pcall(function()
-        game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value = not game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value
+        game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value = true
     end)
 end
 
@@ -426,63 +153,12 @@ local function ShutdownServer()
     end)
 end
 
-local function ExecuteCommand(command)
-    command = string.lower(command)
-    
-    if command == "fly" then
-        Fly()
-    elseif command == "noclip" then
-        NoClip()
-    elseif command == "btools" then
-        GiveBtools()
-    elseif command == "lock" or command == "serverlock" then
-        ServerLock()
-    elseif command == "shutdown" then
-        ShutdownServer()
-    end
-end
-
 DFButton.MouseButton1Click:Connect(ToggleMainFrame)
-ResizeButton.MouseButton1Click:Connect(ToggleMobileMode)
-CloseButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
-end)
-
-ToggleCmdBarButton.MouseButton1Click:Connect(ToggleCmdBar)
+CloseButton.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
 FlyButton.MouseButton1Click:Connect(Fly)
 NoClipButton.MouseButton1Click:Connect(NoClip)
 BtoolsButton.MouseButton1Click:Connect(GiveBtools)
 ServerLockButton.MouseButton1Click:Connect(ServerLock)
 ShutdownButton.MouseButton1Click:Connect(ShutdownServer)
 
-CmdButton.MouseButton1Click:Connect(function()
-    ExecuteCommand(CmdTextBox.Text)
-    CmdTextBox.Text = ""
-end)
-
-CmdTextBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        ExecuteCommand(CmdTextBox.Text)
-        CmdTextBox.Text = ""
-    end
-end)
-
-MakeDraggable(MainFrame)
-MakeDraggable(DFButton)
-
-local rotation = 0
-local borderAnimation = RunService.RenderStepped:Connect(function(dt)
-    rotation = (rotation + 1 * dt) % (2 * math.pi)
-    local color = Color3.fromHSV(rotation/(2*math.pi), 0.8, 1)
-    Border.Color = color
-end)
-
-if UIS.TouchEnabled then
-    ToggleMobileMode()
-end
-
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
-
-ToggleMainFrame()
+DFButton.Visible = true
