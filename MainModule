@@ -1,69 +1,89 @@
--- نسخة DynaFlip المعدلة للعمل في الألعاب العشوائية
+-- انتظار تحميل اللعبة
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-local function SafeWaitForService(serviceName)
-    local service
-    repeat
-        service = game:GetService(serviceName)
-        task.wait()
-    until service
-    return service
-end
+-- خدمات روبلوكس
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
-local Players = SafeWaitForService("Players")
-local CoreGui = SafeWaitForService("CoreGui")
-local TweenService = SafeWaitForService("TweenService")
-local RunService = SafeWaitForService("RunService")
-
+-- المتغيرات الأساسية
 local LocalPlayer = Players.LocalPlayer
 while not LocalPlayer do
     task.wait()
     LocalPlayer = Players.LocalPlayer
 end
 
--- إنشاء الواجهة
+-- إنشاء الواجهة الرئيسية
 local DynaFlip = Instance.new("ScreenGui")
-DynaFlip.Name = "DynaFlipMobileAdmin"
+DynaFlip.Name = "DynaFlipPremiumAdmin"
 DynaFlip.ResetOnSpawn = false
 DynaFlip.Parent = CoreGui
 
--- زر التشغيل الرئيسي (DF)
+-- زر DF مع تأثيرات متحركة
 local DFButton = Instance.new("TextButton")
-DFButton.Name = "DFButton"
+DFButton.Name = "DFMainButton"
 DFButton.Size = UDim2.new(0, 60, 0, 60)
 DFButton.Position = UDim2.new(0, 20, 0.5, -30)
-DFButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+DFButton.BackgroundColor3 = Color3.new(1,1,1)
 DFButton.Text = "DF"
-DFButton.TextColor3 = Color3.new(1,1,1)
+DFButton.TextColor3 = Color3.new(0,0,0)
 DFButton.Font = Enum.Font.GothamBlack
-DFButton.TextSize = 18
+DFButton.TextSize = 20
+DFButton.ZIndex = 2
 DFButton.Parent = DynaFlip
 
--- تأثير دائري للزر
+-- تأثير تدرج اللون للزر
+local UIGradient = Instance.new("UIGradient")
+UIGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(85, 0, 255))
+})
+UIGradient.Rotation = 90
+UIGradient.Parent = DFButton
+
+-- حدود متحركة للزر
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Thickness = 3
+UIStroke.Parent = DFButton
+
+-- تأثير دائري
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(1,0)
 UICorner.Parent = DFButton
 
--- الواجهة الرئيسية
+-- إطار الواجهة الرئيسية
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 300, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
-MainFrame.BackgroundColor3 = Color3.fromRGB(40,40,50)
-MainFrame.BackgroundTransparency = 0.1
+MainFrame.Size = UDim2.new(0, 0, 0, 0) -- سيتم تكبيره لاحقا
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5,0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30,30,40)
+MainFrame.BackgroundTransparency = 0.2
 MainFrame.Visible = false
 MainFrame.Parent = DynaFlip
 
--- قائمة الأوامر
+-- تأثيرات الواجهة
+local FrameCorner = Instance.new("UICorner")
+FrameCorner.CornerRadius = UDim.new(0,12)
+FrameCorner.Parent = MainFrame
+
+local FrameStroke = Instance.new("UIStroke")
+FrameStroke.Color = Color3.fromRGB(100,100,200)
+FrameStroke.Thickness = 2
+FrameStroke.Parent = MainFrame
+
+-- قائمة الأوامر مع أيقونات
 local commands = {
-    {"Fly", Color3.fromRGB(0, 150, 200), function()
+    {name = "الطيران", color = Color3.fromRGB(0, 170, 255), icon = "rbxassetid://7072717162", func = function()
         local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
             humanoid:ChangeState(Enum.HumanoidStateType.Flying)
         end
     end},
     
-    {"NoClip", Color3.fromRGB(0, 180, 120), function()
+    {name = "المرور", color = Color3.fromRGB(0, 200, 100), icon = "rbxassetid://7072723420", func = function()
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
                 part.CanCollide = false
@@ -71,7 +91,7 @@ local commands = {
         end
     end},
     
-    {"Btools", Color3.fromRGB(220, 160, 0), function()
+    {name = "أدوات البناء", color = Color3.fromRGB(255, 170, 0), icon = "rbxassetid://7072705392", func = function()
         local tool1 = Instance.new("HopperBin")
         tool1.BinType = Enum.BinType.Hammer
         tool1.Parent = LocalPlayer.Backpack
@@ -81,9 +101,9 @@ local commands = {
         tool2.Parent = LocalPlayer.Backpack
     end},
     
-    {"Kill All", Color3.fromRGB(180, 0, 0), function()
+    {name = "قتل الجميع", color = Color3.fromRGB(255, 50, 50), icon = "rbxassetid://7072720579", func = function()
         for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer then
+            if player ~= LocalPlayer and player.Character then
                 local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
                 if humanoid then
                     humanoid.Health = 0
@@ -95,34 +115,101 @@ local commands = {
 
 -- إنشاء أزرار الأوامر
 local buttonTemplate = Instance.new("TextButton")
-buttonTemplate.Size = UDim2.new(0.9, 0, 0, 45)
+buttonTemplate.Size = UDim2.new(0.9, 0, 0, 50)
 buttonTemplate.Font = Enum.Font.GothamBold
 buttonTemplate.TextSize = 16
 buttonTemplate.AutoButtonColor = false
+buttonTemplate.TextXAlignment = Enum.TextXAlignment.Left
 
 local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 UIListLayout.Parent = MainFrame
 
-for i, cmd in ipairs(commands) do
+for _, cmd in ipairs(commands) do
     local newButton = buttonTemplate:Clone()
-    newButton.Text = cmd[1]
-    newButton.BackgroundColor3 = cmd[2]
-    newButton.Position = UDim2.new(0.05, 0, 0, (i-1)*50 + 10)
+    newButton.Text = "    "..cmd.name
+    newButton.BackgroundColor3 = cmd.color
     newButton.Parent = MainFrame
     
-    local corner = Instance.new("UICorner")
-    corner.Parent = newButton
+    -- إضافة الأيقونة
+    local icon = Instance.new("ImageLabel")
+    icon.Name = "Icon"
+    icon.Image = cmd.icon
+    icon.Size = UDim2.new(0, 30, 0, 30)
+    icon.Position = UDim2.new(0, 10, 0.5, -15)
+    icon.BackgroundTransparency = 1
+    icon.Parent = newButton
     
+    -- تأثيرات الزر
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0,8)
+    buttonCorner.Parent = newButton
+    
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Color = Color3.new(1,1,1)
+    buttonStroke.Thickness = 1
+    buttonStroke.Parent = newButton
+    
+    -- تأثير التمرير
+    newButton.MouseEnter:Connect(function()
+        TweenService:Create(newButton, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0.2,
+            TextColor3 = Color3.new(1,1,1)
+        }:Play()
+    end)
+    
+    newButton.MouseLeave:Connect(function()
+        TweenService:Create(newButton, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0,
+            TextColor3 = Color3.new(1,1,1)
+        }:Play()
+    end)
+    
+    -- تنفيذ الأمر
     newButton.MouseButton1Click:Connect(function()
-        pcall(cmd[3]) -- تنفيذ الأمر مع معالجة الأخطاء
+        TweenService:Create(newButton, TweenInfo.new(0.1), {
+            BackgroundTransparency = 0.4
+        }:Play()
+        task.wait(0.1)
+        TweenService:Create(newButton, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0
+        }:Play()
+        
+        pcall(cmd.func) -- تنفيذ الأمر مع معالجة الأخطاء
     end)
 end
 
--- التحكم في إظهار/إخفاء الواجهة
-DFButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
+-- تأثيرات الحدود المتحركة
+local borderRotation = 0
+RunService.RenderStepped:Connect(function(dt)
+    borderRotation = (borderRotation + dt*60) % 360
+    UIStroke.Color = Color3.fromHSV(borderRotation/360, 0.8, 1)
 end)
+
+-- فتح/إغلاق الواجهة مع تأثيرات
+local function ToggleUI()
+    if MainFrame.Visible then
+        -- تأثير الإغلاق
+        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+            Size = UDim2.new(0,0,0,0),
+            BackgroundTransparency = 1
+        }:Play()
+        task.wait(0.3)
+        MainFrame.Visible = false
+    else
+        -- تأثير الفتح
+        MainFrame.Visible = true
+        MainFrame.Size = UDim2.new(0,0,0,0)
+        MainFrame.BackgroundTransparency = 1
+        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+            Size = UDim2.new(0, 350, 0, #commands * 60 + 40),
+            BackgroundTransparency = 0.2
+        }:Play()
+    end
+end
+
+DFButton.MouseButton1Click:Connect(ToggleUI)
 
 -- التأكد من ظهور الزر
 DFButton.Visible = true
