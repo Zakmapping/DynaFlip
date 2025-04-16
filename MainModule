@@ -30,7 +30,7 @@ end
 
 -- إنشاء الواجهة الرئيسية
 local DynaFlip = Instance.new("ScreenGui")
-DynaFlip.Name = "DynaFlipFinal"
+DynaFlip.Name = "DynaFlipUltimateV2"
 DynaFlip.ResetOnSpawn = false
 DynaFlip.Parent = CoreGui
 
@@ -47,7 +47,7 @@ DFButton.TextSize = 22
 DFButton.ZIndex = 2
 DFButton.Parent = DynaFlip
 
--- تأثيرات الزر (مع التحقق من وجود الخصائص)
+-- دالة مساعدة لإضافة التأثيرات
 local function AddEffect(obj, effect, props)
     if obj and effect and props then
         local e = Instance.new(effect)
@@ -62,6 +62,7 @@ local function AddEffect(obj, effect, props)
     return nil
 end
 
+-- إضافة تأثيرات للزر الرئيسي
 AddEffect(DFButton, "UIGradient", {
     Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)),
@@ -194,33 +195,45 @@ local function CreateButton(cmd)
         Thickness = 1
     })
 
+    -- التعديل على السطر 198 والإصلاحات المرتبطة به
     button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {
+        local tweenInfo = TweenInfo.new(0.2)
+        local properties = {
             BackgroundTransparency = 0.2,
             TextColor3 = Color3.new(1,1,1)
-        }:Play()
+        }
+        local tween = TweenService:Create(button, tweenInfo, properties)
+        tween:Play()
     end)
 
     button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {
+        local tweenInfo = TweenInfo.new(0.2)
+        local properties = {
             BackgroundTransparency = 0,
             TextColor3 = Color3.new(1,1,1)
-        }:Play()
+        }
+        local tween = TweenService:Create(button, tweenInfo, properties)
+        tween:Play()
     end)
 
     button.MouseButton1Click:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.1), {
+        local tween1 = TweenService:Create(button, TweenInfo.new(0.1), {
             BackgroundTransparency = 0.4
-        }:Play()
+        })
+        tween1:Play()
+        
         task.wait(0.1)
-        TweenService:Create(button, TweenInfo.new(0.2), {
+        
+        local tween2 = TweenService:Create(button, TweenInfo.new(0.2), {
             BackgroundTransparency = 0
-        }:Play()
+        })
+        tween2:Play()
         
         pcall(cmd.func)
     end)
 end
 
+-- إنشاء جميع الأزرار
 for _, cmd in ipairs(commands) do
     CreateButton(cmd)
 end
@@ -243,20 +256,22 @@ end)
 -- فتح/إغلاق الواجهة
 local function ToggleUI()
     if MainFrame.Visible then
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
             Size = UDim2.new(0,0,0,0),
             BackgroundTransparency = 1
-        }:Play()
+        })
+        tween:Play()
         task.wait(0.3)
         MainFrame.Visible = false
     else
         MainFrame.Visible = true
         MainFrame.Size = UDim2.new(0,0,0,0)
         MainFrame.BackgroundTransparency = 1
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
             Size = UDim2.new(0, 350, 0, #commands * 60 + 40),
             BackgroundTransparency = 0.2
-        }:Play()
+        })
+        tween:Play()
     end
 end
 
@@ -265,3 +280,5 @@ DFButton.MouseButton1Click:Connect(function()
 end)
 
 DFButton.Visible = true
+
+print("تم تحميل سكربت DynaFlip بنجاح!")
