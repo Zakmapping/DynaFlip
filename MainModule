@@ -3,6 +3,7 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
@@ -189,14 +190,14 @@ local function CreateButton(text, color)
         TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 0.7
-        }:Play()
+        }):Play()
     end)
     
     Button.MouseLeave:Connect(function()
         TweenService:Create(HoverEffect, TweenInfo.new(0.3), {
             Size = UDim2.new(0, 0, 1, 0),
             BackgroundTransparency = 0.8
-        }:Play()
+        }):Play()
     end)
     
     Button.MouseButton1Click:Connect(function()
@@ -264,7 +265,7 @@ local function ToggleMainFrame()
     if MainFrame.Visible then
         TweenService:Create(MainFrame, TweenInfo.new(0.3), {
             BackgroundTransparency = 0.1
-        }:Play()
+        }):Play()
     end
 end
 
@@ -414,11 +415,15 @@ local function GiveBtools()
 end
 
 local function ServerLock()
-    game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value = not game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value
+    pcall(function()
+        game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value = not game:GetService("ReplicatedStorage"):FindFirstChild("SetServerLocked", true).Value
+    end)
 end
 
 local function ShutdownServer()
-    game:GetService("ReplicatedStorage"):FindFirstChild("ShutdownServer", true):FireServer()
+    pcall(function()
+        game:GetService("ReplicatedStorage"):FindFirstChild("ShutdownServer", true):FireServer()
+    end)
 end
 
 local function ExecuteCommand(command)
@@ -475,3 +480,9 @@ end)
 if UIS.TouchEnabled then
     ToggleMobileMode()
 end
+
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+ToggleMainFrame()
